@@ -11,7 +11,7 @@
 -- any existing data.
 --
 -- RUN ONCE, against the database that is already selected:
---   Local XAMPP : D:\xampp\mysql\bin\mysql -u root trying < sql\updates\2026-09-08_field-remember-tokens.sql
+--   Local XAMPP : D:\xampp\mysql\bin\mysql -u root trying < sql\migrations\2026-09-08_field-remember-tokens.sql
 --   cPanel      : phpMyAdmin -> select the database -> Import -> this file
 --
 -- Safe to re-run : CREATE TABLE IF NOT EXISTS is a no-op once the table exists.

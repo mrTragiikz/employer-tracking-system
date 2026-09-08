@@ -8,8 +8,8 @@
 --
 -- For a database that already has data (e.g. the live site), this file
 -- cannot be used - it DROPs every table. Incremental changes to a populated
--- database live in sql/updates/ (one dated file per change); each one is
--- also folded back into this file. See sql/updates/README.md.
+-- database live in sql/migrations/ (one dated .sql file per change, applied
+-- in date order); each one is also folded back into this file.
 --
 -- Import (local XAMPP): D:\xampp\mysql\bin\mysql -u root track < sql\database.sql
 --   or via phpMyAdmin: create/select the `track` database first, then Import.

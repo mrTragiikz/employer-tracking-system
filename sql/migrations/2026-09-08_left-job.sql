@@ -13,7 +13,7 @@
 -- Nothing is deleted. This is a single nullable column.
 --
 -- RUN ONCE, against the database that is already selected:
---   Local XAMPP : D:\xampp\mysql\bin\mysql -u root trying < sql\updates\2026-09-08_left-job.sql
+--   Local XAMPP : D:\xampp\mysql\bin\mysql -u root trying < sql\migrations\2026-09-08_left-job.sql
 --   cPanel      : phpMyAdmin -> select the database -> Import -> this file
 --
 -- Safe to re-run : the ADD COLUMN is guarded; a second run is a no-op.
