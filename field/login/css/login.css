@@ -93,26 +93,17 @@ html { touch-action: pan-x pan-y; }
 
 /* ---- logo ---- */
 .fl-logo {
-  display: inline-flex;
+  display: flex;
   align-items: center;
-  gap: 10px;
-  font-family: 'Sora', 'Inter', sans-serif;
-  font-weight: 700;
-  font-size: 16px;
-  letter-spacing: -0.01em;
-  color: var(--fl-ink);
+  justify-content: center;
   margin-bottom: 22px;
 }
-.fl-logo__mark {
-  width: 34px;
-  height: 34px;
-  display: grid;
-  place-items: center;
-  border-radius: 9px;
-  font-size: 16px;
-  color: #fff;
-  background: linear-gradient(150deg, var(--fl-brand-2) 0%, var(--fl-brand) 55%, var(--fl-brand-deep) 100%);
-  box-shadow: 0 4px 12px -4px rgba(107, 68, 35, 0.5);
+.fl-logo__img {
+  height: 62px;
+  width: auto;
+  max-width: 100%;
+  object-fit: contain;
+  display: block;
 }
 
 .fl-head { margin-bottom: 18px; }

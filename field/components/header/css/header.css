@@ -68,10 +68,18 @@ h2 { font-size: 14px; font-weight: 700; margin: 0; }
   z-index: 20;
 }
 .field-topbar__brand {
-  display: flex; align-items: center; gap: 7px;
-  font-weight: 700; font-size: 15px; color: var(--text);
+  display: flex; align-items: center;
+  height: 100%;
+  flex: 0 1 auto;
+  min-width: 0;
 }
-.field-topbar__brand i { color: var(--brown); font-size: 16px; }
+.field-topbar__logo {
+  height: 34px;            /* fits the 58px bar with breathing room */
+  width: auto;
+  max-width: 190px;        /* never crowd the avatar on a narrow phone */
+  object-fit: contain;
+  display: block;
+}
 .field-topbar__right {
   margin-left: auto;
   display: flex; align-items: center; gap: 10px;

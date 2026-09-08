@@ -60,8 +60,9 @@ $year    = date('Y');
     <div class="fl-card">
 
       <div class="fl-logo">
-        <span class="fl-logo__mark"><i class="bi bi-signpost-split-fill"></i></span>
-        <span class="fl-logo__word"><?= e($appName) ?></span>
+        <img class="fl-logo__img"
+             src="<?= e(asset_url(APP_URL . '/assets/img/rajdoot-logo.jpg')) ?>"
+             alt="<?= e($appName) ?>">
       </div>
 
       <?php if ($suspended): ?>

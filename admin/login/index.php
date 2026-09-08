@@ -52,8 +52,9 @@ $year    = date('Y');
     <aside class="lg-brandpanel" aria-hidden="true">
       <div class="lg-brandpanel__inner">
         <div class="lg-logo">
-          <span class="lg-logo__mark"><i class="bi bi-signpost-split-fill"></i></span>
-          <span class="lg-logo__word"><?= e($appName) ?></span>
+          <img class="lg-logo__img"
+               src="<?= e(APP_URL) ?>/assets/img/rajdoot-logo.jpg"
+               alt="<?= e($appName) ?>">
         </div>
 
         <div class="lg-brandpanel__body">
@@ -79,8 +80,9 @@ $year    = date('Y');
       <div class="lg-form">
 
         <div class="lg-logo lg-logo--compact">
-          <span class="lg-logo__mark"><i class="bi bi-signpost-split-fill"></i></span>
-          <span class="lg-logo__word"><?= e($appName) ?></span>
+          <img class="lg-logo__img"
+               src="<?= e(APP_URL) ?>/assets/img/rajdoot-logo.jpg"
+               alt="<?= e($appName) ?>">
         </div>
 
         <header class="lg-form__head">

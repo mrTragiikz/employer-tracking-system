@@ -47,12 +47,11 @@ if (empty($me['is_super_admin'])) {
 }
 ?>
 <aside class="sidebar" data-sidebar>
-  <a class="sidebar__logo" href="<?= e(admin_url('dashboard')) ?>">
+  <a class="sidebar__logo" href="<?= e(admin_url('dashboard')) ?>" aria-label="<?= e(APP_NAME) ?> — Dashboard">
+    <img class="sidebar__logo-img"
+         src="<?= e(asset_url(APP_URL . '/assets/img/rajdoot-logo.jpg')) ?>"
+         alt="<?= e(APP_NAME) ?>">
     <span class="sidebar__logo-mark" aria-hidden="true"><i class="bi bi-geo-alt-fill"></i></span>
-    <span class="sidebar__logo-text">
-      <strong><?= e(APP_NAME) ?></strong>
-      <small>TRACK · MANAGE · GROW</small>
-    </span>
   </a>
 
   <nav class="sidebar__nav">

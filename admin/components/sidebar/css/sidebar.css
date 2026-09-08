@@ -28,30 +28,35 @@
 .sidebar__logo {
   display: flex;
   align-items: center;
-  gap: 10px;
-  padding: 0 6px 18px;
+  margin: 0 2px 18px;
+  padding: 8px 10px;
+  background: #fff;
+  border: 1px solid var(--border-soft);
+  border-radius: 12px;
+}
+.sidebar__logo-img {
+  width: 100%;
+  max-width: 168px;
+  height: auto;
+  object-fit: contain;
+  display: block;
 }
 .sidebar__logo-mark {
+  display: none;
   color: var(--brown);
-  display: grid;
-  place-items: center;
   font-size: 22px;
   line-height: 1;
 }
-.sidebar__logo-text strong {
-  display: block;
-  font-size: 17px;
-  font-weight: 700;
-  letter-spacing: -0.01em;
-  color: var(--text);
+/* Collapsed rail (62px): the wide wordmark can't fit - swap to the icon. */
+.admin-shell.is-collapsed .sidebar__logo {
+  margin: 0 auto 16px;
+  padding: 9px;
+  width: 42px;
+  height: 42px;
+  justify-content: center;
 }
-.sidebar__logo-text small {
-  display: block;
-  font-size: 8px;
-  letter-spacing: 0.12em;
-  color: var(--text-muted);
-  margin-top: 1px;
-}
+.admin-shell.is-collapsed .sidebar__logo-img { display: none; }
+.admin-shell.is-collapsed .sidebar__logo-mark { display: grid; place-items: center; }
 
 /* --- nav --- */
 .sidebar__nav { flex: 1 1 auto; }

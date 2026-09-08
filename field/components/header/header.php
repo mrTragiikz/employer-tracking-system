@@ -67,10 +67,11 @@ if (!empty($me['id'])) {
 <div class="field-shell">
 
   <header class="field-topbar">
-    <span class="field-topbar__brand">
-      <i class="bi bi-geo-alt-fill"></i>
-      <span><?= e(APP_NAME) ?></span>
-    </span>
+    <a class="field-topbar__brand" href="<?= e(APP_URL) ?>/field/home/">
+      <img class="field-topbar__logo"
+           src="<?= e(asset_url(APP_URL . '/assets/img/rajdoot-logo.jpg')) ?>"
+           alt="<?= e(APP_NAME) ?>">
+    </a>
 
     <div class="field-topbar__right">
       <a class="field-topbar__avatar" href="<?= e(APP_URL) ?>/field/profile/" aria-label="My Profile">
