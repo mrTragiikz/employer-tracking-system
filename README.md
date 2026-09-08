@@ -351,22 +351,30 @@ Rules baked into the schema, not just the code:
 
 ```bash
 # 1. Put the code where the web server can see it
-git clone https://github.com/mrTragiikz/track.git   # -> d:\xampp\htdocs\track
+git clone https://github.com/mrTragiikz/employer-tracking-system.git track
 
 # 2. Create the database and import the schema
 #    (the SQL file does NOT run CREATE DATABASE — that fails on shared hosting)
 mysql -u root -e "CREATE DATABASE track CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci"
 mysql -u root track < sql/database.sql
 
-# 3. Configure
-cp secure_config/secure_config.example.php secure_config/secure_config.php
-#    edit it: DB user/password, a long random APP_SECRET, APP_URL
+# 3. Create secure_config/secure_config.php
+#    A small PHP file of define() constants: DB_HOST / DB_NAME / DB_USER /
+#    DB_PASS, APP_URL, APP_SECRET (a long random string), COOKIE_SECURE,
+#    APP_ENV, APP_TZ, MAPBOX_ACCESS_TOKEN, plus the session / upload / fraud
+#    tuning constants. It is git-ignored — it holds every real secret so
+#    nothing sensitive lives in the public config/ folder.
 
 # 4. Make uploads/ and logs/ writable by the web server
 
 # 5. Open http://localhost/track/admin/
 #    default login:  prabin_dev  /  12345   (change it immediately)
 ```
+
+> `config/config.php` requires `secure_config/secure_config.php` unconditionally
+> — the app will not boot without it. It looks for the folder as a sibling of
+> `config/`, and (for production) also one level above the project root, so the
+> whole `secure_config/` folder can be dragged outside `public_html`.
 
 The field app is at `http://localhost/track/field/`. To test GPS and the camera
 from a real phone on the same Wi-Fi, set `APP_URL` to the machine's LAN IP with

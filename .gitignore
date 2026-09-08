@@ -1,9 +1,8 @@
 # Real secrets - never commit (DB credentials, APP_URL, APP_SECRET, Mapbox
-# token - see secure_config/secure_config.php). Copy it by hand to the live
-# server. secure_config.example.php (the sanitised template) IS tracked, and
-# so is that folder's .htaccess (the safety net, not a secret).
-/secure_config/secure_config.php
-/secure_config/secure_config.local.php
+# token). The whole secure_config/ folder is ignored EXCEPT its .htaccess
+# (the deny-all safety net, not a secret).
+/secure_config/*
+!/secure_config/.htaccess
 
 # Runtime
 /logs/*
