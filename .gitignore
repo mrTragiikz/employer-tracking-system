@@ -1,8 +1,9 @@
-# Real secrets - never commit (DB credentials, APP_URL, APP_SECRET - see
-# secure_config/secure_config.php). Move this file to the live server by
-# hand (FTP / File Manager), not git. The .htaccess in that folder IS
-# tracked (it's the safety net, not a secret).
+# Real secrets - never commit (DB credentials, APP_URL, APP_SECRET, Mapbox
+# token - see secure_config/secure_config.php). Copy it by hand to the live
+# server. secure_config.example.php (the sanitised template) IS tracked, and
+# so is that folder's .htaccess (the safety net, not a secret).
 /secure_config/secure_config.php
+/secure_config/secure_config.local.php
 
 # Runtime
 /logs/*
