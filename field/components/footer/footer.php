@@ -40,6 +40,11 @@ $tabs = [
 
 </div><!-- .field-shell -->
 
+<?php /* Admin -> employee announcement popup. Polls its own API; renders
+         nothing visible until there is a live announcement this employee has
+         not closed. Present on every field page. */ ?>
+<?php require dirname(__DIR__) . '/announcement/announcement.php'; ?>
+
 <?php /* PWA: service-worker registration + "Add to Home Screen" helper.
          asset_url() cache-busts it; defer so it never blocks rendering. */ ?>
 <script src="<?= e(asset_url(APP_URL . '/field/pwa.js')) ?>" defer></script>

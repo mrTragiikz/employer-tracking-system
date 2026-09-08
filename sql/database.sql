@@ -49,6 +49,9 @@ SET FOREIGN_KEY_CHECKS = 0;
 --   CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
 -- USE `track`;
 
+DROP TABLE IF EXISTS `announcement_targets`;
+DROP TABLE IF EXISTS `announcement_dismissals`;
+DROP TABLE IF EXISTS `announcements`;
 DROP TABLE IF EXISTS `fraud_flags`;
 DROP TABLE IF EXISTS `alerts`;
 DROP TABLE IF EXISTS `photos`;
@@ -540,6 +543,49 @@ CREATE TABLE `audit_log` (
   KEY `ix_audit_actor_time` (`actor_id`,`created_at`),
   KEY `ix_audit_entity` (`entity`,`entity_id`),
   CONSTRAINT `fk_audit_actor` FOREIGN KEY (`actor_id`) REFERENCES `users`(`id`) ON DELETE SET NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- =============================================================================
+-- announcements - a Super Admin's title + message shown as a live popup on
+-- employees' field screens (the field pages poll field/api/announcement.php
+-- ~every 30s). Only one row is is_active=1 at a time. audience = 'all' shows
+-- it to every employee; audience = 'selected' shows it only to the employees
+-- in announcement_targets. announcement_dismissals records which employee has
+-- closed which announcement (per-employee); editing an announcement clears
+-- its dismissals so everyone sees the revised version. See
+-- admin/09-announcements/ and field/components/announcement/.
+-- =============================================================================
+CREATE TABLE `announcements` (
+  `id` INT UNSIGNED NOT NULL AUTO_INCREMENT,
+  `title` VARCHAR(120) NOT NULL,
+  `body` VARCHAR(2000) NOT NULL,
+  `is_active` TINYINT(1) NOT NULL DEFAULT 1,
+  `audience` ENUM('all','selected') NOT NULL DEFAULT 'all',
+  `created_by` INT UNSIGNED DEFAULT NULL,
+  `created_at` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  `updated_at` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  PRIMARY KEY (`id`),
+  KEY `ix_ann_active` (`is_active`, `id`),
+  CONSTRAINT `fk_ann_user` FOREIGN KEY (`created_by`) REFERENCES `users`(`id`) ON DELETE SET NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+CREATE TABLE `announcement_dismissals` (
+  `announcement_id` INT UNSIGNED NOT NULL,
+  `user_id` INT UNSIGNED NOT NULL,
+  `dismissed_at` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  PRIMARY KEY (`announcement_id`, `user_id`),
+  KEY `ix_ad_user` (`user_id`),
+  CONSTRAINT `fk_ad_ann` FOREIGN KEY (`announcement_id`) REFERENCES `announcements`(`id`) ON DELETE CASCADE,
+  CONSTRAINT `fk_ad_user` FOREIGN KEY (`user_id`) REFERENCES `users`(`id`) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+CREATE TABLE `announcement_targets` (
+  `announcement_id` INT UNSIGNED NOT NULL,
+  `user_id` INT UNSIGNED NOT NULL,
+  PRIMARY KEY (`announcement_id`, `user_id`),
+  KEY `ix_at_user` (`user_id`),
+  CONSTRAINT `fk_at_ann` FOREIGN KEY (`announcement_id`) REFERENCES `announcements`(`id`) ON DELETE CASCADE,
+  CONSTRAINT `fk_at_user` FOREIGN KEY (`user_id`) REFERENCES `users`(`id`) ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 SET FOREIGN_KEY_CHECKS = 1;

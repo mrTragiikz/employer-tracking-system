@@ -25,7 +25,7 @@
 
 'use strict';
 
-const CACHE_VERSION = 'rajdoot-field-v2';
+const CACHE_VERSION = 'rajdoot-field-v3';
 
 /* <origin>/<base>/field/  - the exact scope this SW was registered with.
    Every cached URL and every lookup uses this absolute base, so cache.match()
@@ -42,6 +42,7 @@ const SHELL = [
   OFFLINE_URL,
   SCOPE + '/components/header/css/header.css',
   SCOPE + '/components/footer/css/footer.css',
+  SCOPE + '/components/announcement/css/announcement.css',
   SCOPE + '/components/photo-compress.js',
   SCOPE + '/pwa.js',
   SCOPE + '/icons/icon-192.png',

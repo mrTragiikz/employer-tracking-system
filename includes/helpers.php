@@ -99,16 +99,17 @@ function redirect(string $path): never
 function admin_url(string $slug): string
 {
     static $dirs = [
-        'dashboard'  => '01-dashboard',
-        'employees'  => '02-employees',
-        'visits'     => '03-visits',
-        'attendance' => '04-attendance',
-        'routes'     => '05-routes-map',
-        'reports'    => '06-reports',
-        'alerts'     => '07-alerts',
-        'photos'     => '08-evidence-photos',
-        'settings'   => '10-settings',
-        'users'      => '11-users-roles',
+        'dashboard'     => '01-dashboard',
+        'employees'     => '02-employees',
+        'visits'        => '03-visits',
+        'attendance'    => '04-attendance',
+        'routes'        => '05-routes-map',
+        'reports'       => '06-reports',
+        'alerts'        => '07-alerts',
+        'photos'        => '08-evidence-photos',
+        'announcements' => '09-announcements',
+        'settings'      => '10-settings',
+        'users'         => '11-users-roles',
     ];
     return APP_URL . '/admin/' . ($dirs[$slug] ?? $slug) . '/';
 }
