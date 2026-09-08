@@ -8,8 +8,17 @@ declare(strict_types=1);
 
 function csrf_token(): string
 {
+    // The field app keeps sessions alive for weeks ("stay logged in"), so its
+    // CSRF token needs a matching TTL - otherwise the first POST after a long
+    // idle stretch fails a stale-token check once. The admin panel keeps the
+    // shorter CSRF_TOKEN_TTL.
+    $isFieldRequest = str_contains($_SERVER['REQUEST_URI'] ?? '', '/field/');
+    $ttl = ($isFieldRequest && defined('FIELD_CSRF_TOKEN_TTL'))
+        ? (int) FIELD_CSRF_TOKEN_TTL
+        : CSRF_TOKEN_TTL;
+
     if (empty($_SESSION['csrf']) || empty($_SESSION['csrf_time'])
-        || (time() - $_SESSION['csrf_time']) > CSRF_TOKEN_TTL) {
+        || (time() - $_SESSION['csrf_time']) > $ttl) {
         $_SESSION['csrf'] = bin2hex(random_bytes(32));
         $_SESSION['csrf_time'] = time();
     }

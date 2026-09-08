@@ -361,8 +361,10 @@ mysql -u root track < sql/database.sql
 # 3. Create secure_config/secure_config.php
 #    A small PHP file of define() constants: DB_HOST / DB_NAME / DB_USER /
 #    DB_PASS, APP_URL, APP_SECRET (a long random string), COOKIE_SECURE,
-#    APP_ENV, APP_TZ, MAPBOX_ACCESS_TOKEN, plus the session / upload / fraud
-#    tuning constants. It is git-ignored — it holds every real secret so
+#    APP_ENV, APP_TZ, MAPBOX_ACCESS_TOKEN, the session / upload / fraud
+#    tuning constants, and the field "stay logged in" constants
+#    (FIELD_REMEMBER_COOKIE, FIELD_REMEMBER_TTL, FIELD_SESSION_LIFETIME,
+#    FIELD_CSRF_TOKEN_TTL). It is git-ignored — it holds every real secret so
 #    nothing sensitive lives in the public config/ folder.
 
 # 4. Make uploads/ and logs/ writable by the web server

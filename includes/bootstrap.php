@@ -60,10 +60,27 @@ if (APP_ENV === 'production' && !defined('TRACK_DEBUG_REQUEST')) {
 }
 
 // ---- Session: httponly, secure (in prod), regenerate on login -----------
+// The field app ("stay logged in") gets a much longer session cookie + GC
+// window than the admin panel. A remember-me token (includes/auth.php) rebuilds
+// the session even past this window, but a long session means the token is
+// consulted rarely rather than on every request. The admin panel keeps the
+// short SESSION_LIFETIME. Branch on the request path - the session name is
+// shared, only its lifetime differs.
+$isFieldRequest = str_contains($_SERVER['REQUEST_URI'] ?? '', '/field/');
+$sessionLifetime = ($isFieldRequest && defined('FIELD_SESSION_LIFETIME'))
+    ? (int) FIELD_SESSION_LIFETIME
+    : SESSION_LIFETIME;
+
+if ($isFieldRequest && defined('FIELD_SESSION_LIFETIME')) {
+    // Keep PHP's garbage collector from deleting an idle field session before
+    // its cookie would expire.
+    ini_set('session.gc_maxlifetime', (string) FIELD_SESSION_LIFETIME);
+}
+
 if (session_status() !== PHP_SESSION_ACTIVE) {
     session_name(SESSION_NAME);
     session_set_cookie_params([
-        'lifetime' => SESSION_LIFETIME,
+        'lifetime' => $sessionLifetime,
         'path'     => '/',
         'domain'   => '',
         'secure'   => COOKIE_SECURE,

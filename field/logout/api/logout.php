@@ -21,6 +21,10 @@ if (strtoupper($_SERVER['REQUEST_METHOD'] ?? 'GET') === 'POST' && csrf_check()) 
             // best effort
         }
     }
+    // Delete the remember-me token + clear its cookie BEFORE destroying the
+    // session, so a real Logout means the phone is truly signed out (not
+    // silently auto-logged-in again on the next page load).
+    revoke_remember_token($pdo);
     logout_session();
 }
 

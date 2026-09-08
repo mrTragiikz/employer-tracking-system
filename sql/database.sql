@@ -2,11 +2,14 @@
 -- Track / Rajdoot - field visit attendance & tracking
 -- Schema + settings defaults + one seeded admin.
 --
--- THE single source of truth for the schema. There is no separate
--- migrations folder - every schema change made during development is
--- applied directly here, so this file is always the complete, final,
--- ready-to-import structure. Every fresh deploy (dev or live) just imports
--- this one file.
+-- THE single source of truth for the schema. Every schema change is folded
+-- in here, so this file is always the complete, final, ready-to-import
+-- structure - every FRESH deploy (dev or live) just imports this one file.
+--
+-- For a database that already has data (e.g. the live site), this file
+-- cannot be used - it DROPs every table. Incremental changes to a populated
+-- database live in sql/updates/ (one dated file per change); each one is
+-- also folded back into this file. See sql/updates/README.md.
 --
 -- Import (local XAMPP): D:\xampp\mysql\bin\mysql -u root track < sql\database.sql
 --   or via phpMyAdmin: create/select the `track` database first, then Import.
@@ -57,6 +60,7 @@ DROP TABLE IF EXISTS `attendance`;
 DROP TABLE IF EXISTS `shops`;
 DROP TABLE IF EXISTS `login_attempts`;
 DROP TABLE IF EXISTS `auth_events`;
+DROP TABLE IF EXISTS `field_remember_tokens`;
 DROP TABLE IF EXISTS `field_devices`;
 DROP TABLE IF EXISTS `dealers`; -- old pre-rework table name, dropped for good
 DROP TABLE IF EXISTS `settings`;
@@ -157,6 +161,46 @@ CREATE TABLE `field_devices` (
   PRIMARY KEY (`id`),
   UNIQUE KEY `uq_device_user` (`user_id`,`device_id`),
   CONSTRAINT `fk_fd_user` FOREIGN KEY (`user_id`) REFERENCES `users`(`id`) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- =============================================================================
+-- field_remember_tokens - "stay logged in" for the field app.
+--
+-- The field app (employee phone / installed APK) stays signed in across app
+-- closes, phone restarts, and long idle gaps - it only ends on an explicit
+-- Logout or an admin action (Lock / Reset PIN / Reset Device).
+--
+-- How: on a successful employee login a random token is issued; its SHA-256
+-- hash is stored here, the raw token goes into a long-lived HttpOnly cookie
+-- (FIELD_REMEMBER_COOKIE). When the PHP session is gone but that cookie is
+-- present, require_employee() (includes/auth.php) verifies the token here and
+-- rebuilds the session - then every normal guard (is_active, deleted_at,
+-- security_stamp_at) still runs, so an admin Lock / PIN reset / device reset
+-- kills a "remembered" session exactly as it kills a live one.
+--
+-- The token is ROTATED on every use (old row deleted, fresh row+cookie
+-- issued) so a stolen cookie is good for one request at most.
+--
+-- This table is safe to TRUNCATE at any time: every field user is simply
+-- asked to sign in again on their next visit. Nothing else depends on it.
+-- =============================================================================
+CREATE TABLE `field_remember_tokens` (
+  `id` BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
+  `user_id` INT UNSIGNED NOT NULL, -- the employee
+  `token_hash` CHAR(64) NOT NULL, -- SHA-256 hex of the raw token (never store the raw)
+  `device_id` VARCHAR(128) DEFAULT NULL, -- device_id bound at issue time (rule 10 link)
+  `user_agent` VARCHAR(255) DEFAULT NULL,
+  -- issued_at is the moment this device chain FIRST authenticated (a real
+  -- phone+PIN login). It is carried forward UNCHANGED every time the token
+  -- rotates, so it is the stable anchor the security_stamp_at check compares
+  -- against - the same role $_SESSION['login_at'] plays for a live session.
+  `issued_at` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  `created_at` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP, -- when THIS row (post-rotation) was written
+  `last_used_at` DATETIME DEFAULT NULL,
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `uq_frt_hash` (`token_hash`),
+  KEY `ix_frt_user` (`user_id`),
+  CONSTRAINT `fk_frt_user` FOREIGN KEY (`user_id`) REFERENCES `users`(`id`) ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- =============================================================================

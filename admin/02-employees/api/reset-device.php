@@ -40,6 +40,11 @@ try {
           WHERE id = ? AND role = 'employee'"
     )->execute([$id]);
 
+    // "New phone" - the old phone's stay-logged-in tokens are dead. The
+    // security_stamp_at bump above already invalidates them on the next
+    // request; deleting the rows now is the clean follow-through.
+    $pdo->prepare('DELETE FROM field_remember_tokens WHERE user_id = ?')->execute([$id]);
+
     employee_audit($pdo, $me['id'], 'Employee.reset_device', $id,
         ['device_id' => $employee['device_id']], ['device_id' => null]);
 

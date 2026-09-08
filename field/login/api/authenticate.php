@@ -55,6 +55,11 @@ $result = employee_authenticate($pdo, $phone, $pin, $deviceId);
 
 if (is_array($result)) {
     login_session($result);
+    // Stay logged in: drop the long-lived remember-me cookie so this phone
+    // stays signed in across app closes / restarts until an explicit Logout
+    // or an admin action (Lock / Reset PIN / Reset Device). Best-effort -
+    // a failure here does not affect the (already successful) login.
+    issue_remember_token($pdo, (int) $result['id'], $deviceId);
     session_write_close();
     redirect(APP_URL . '/field/home/');
 }
