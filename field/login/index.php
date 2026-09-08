@@ -48,6 +48,15 @@ $year    = date('Y');
   <meta name="robots" content="noindex, nofollow">
   <title>Sign in &middot; <?= e($appName) ?></title>
 
+  <?php /* PWA - same manifest as the rest of the field app, so installing
+           from the login screen (before first sign-in) works too. */ ?>
+  <link rel="manifest" href="<?= e(APP_URL) ?>/field/manifest.php">
+  <meta name="theme-color" content="#6b4423">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-title" content="Rajdoot">
+  <link rel="apple-touch-icon" href="<?= e(APP_URL) ?>/field/icons/icon-192.png">
+
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;450;500;600;700&family=Sora:wght@600;700&display=swap" rel="stylesheet">
@@ -152,5 +161,6 @@ $year    = date('Y');
   </main>
 
   <script src="<?= e(asset_url(APP_URL . '/field/login/js/login.js')) ?>"></script>
+  <script src="<?= e(asset_url(APP_URL . '/field/pwa.js')) ?>" defer></script>
 </body>
 </html>

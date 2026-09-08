@@ -22,6 +22,17 @@
     RewriteRule ^$ index.php [L]
 </IfModule>
 
+# --- Service worker must never be served stale ---
+# field/sw.js controls what the installed app caches; a cached-forever copy
+# would freeze the app on an old shell. No-cache lets the browser re-check it
+# on every load (it's tiny). The web app's own assets still cache normally.
+# (The manifest is manifest.php, which sets its own headers.)
+<IfModule mod_headers.c>
+    <FilesMatch "sw\.js$">
+        Header set Cache-Control "no-cache, no-store, must-revalidate"
+    </FilesMatch>
+</IfModule>
+
 # --- Security headers (mod_headers) ---
 <IfModule mod_headers.c>
     Header always set X-Content-Type-Options "nosniff"

@@ -1,0 +1,75 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+  <title>Offline &middot; Rajdoot</title>
+  <!-- Fully self-contained: this page is shown precisely when there is NO
+       network, so it can load nothing external. -->
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    html, body {
+      height: 100%;
+      font-family: system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+      color: #2a2420;
+      background: #faf6ee;
+    }
+    .wrap {
+      min-height: 100%;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      text-align: center;
+      padding: 32px 24px;
+      max-width: 420px;
+      margin: 0 auto;
+    }
+    .icon {
+      width: 76px;
+      height: 76px;
+      border-radius: 50%;
+      display: grid;
+      place-items: center;
+      background: #f3ede4;
+      margin-bottom: 20px;
+    }
+    .icon svg { width: 38px; height: 38px; stroke: #6b4423; }
+    h1 { font-size: 20px; font-weight: 700; margin-bottom: 8px; letter-spacing: -0.01em; }
+    p { font-size: 14px; line-height: 1.55; color: #6b6156; margin-bottom: 22px; }
+    button {
+      appearance: none;
+      border: 0;
+      border-radius: 12px;
+      padding: 13px 26px;
+      font-size: 15px;
+      font-weight: 600;
+      color: #fff;
+      background: linear-gradient(150deg, #8a5a2e 0%, #6b4423 55%, #4f3018 100%);
+      cursor: pointer;
+    }
+    button:active { transform: translateY(1px); }
+    .hint { margin-top: 16px; font-size: 12px; color: #948a7d; }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <div class="icon" aria-hidden="true">
+      <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round">
+        <path d="M1 1l22 22"/>
+        <path d="M16.72 11.06A10.94 10.94 0 0 1 19 12.55"/>
+        <path d="M5 12.55a10.94 10.94 0 0 1 5.17-2.39"/>
+        <path d="M10.71 5.05A16 16 0 0 1 22.58 9"/>
+        <path d="M1.42 9a15.91 15.91 0 0 1 4.7-2.88"/>
+        <path d="M8.53 16.11a6 6 0 0 1 6.95 0"/>
+        <line x1="12" y1="20" x2="12.01" y2="20"/>
+      </svg>
+    </div>
+    <h1>You're offline</h1>
+    <p>Rajdoot needs a connection to load this page and to save your
+       check-ins and visits. Move to where you have signal and try again.</p>
+    <button type="button" onclick="location.reload()">Try again</button>
+    <p class="hint">Your login is remembered &mdash; you won't need to sign in again.</p>
+  </div>
+</body>
+</html>

@@ -45,6 +45,17 @@ if (!empty($me['id'])) {
 
   <title><?= e($pageTitle) ?> - <?= e(APP_NAME) ?></title>
 
+  <?php /* PWA: makes the field app installable + gives it the offline page.
+           Scope is <APP_URL>/field/ only - the admin panel is unaffected.
+           manifest.php (not a static .webmanifest) so its URLs are correct
+           on both the live domain root and the local /try/ subfolder. */ ?>
+  <link rel="manifest" href="<?= e(APP_URL) ?>/field/manifest.php">
+  <meta name="theme-color" content="#6b4423">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-title" content="Rajdoot">
+  <link rel="apple-touch-icon" href="<?= e(APP_URL) ?>/field/icons/icon-192.png">
+
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">

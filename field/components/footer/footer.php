@@ -39,5 +39,9 @@ $tabs = [
   </nav>
 
 </div><!-- .field-shell -->
+
+<?php /* PWA: service-worker registration + "Add to Home Screen" helper.
+         asset_url() cache-busts it; defer so it never blocks rendering. */ ?>
+<script src="<?= e(asset_url(APP_URL . '/field/pwa.js')) ?>" defer></script>
 </body>
 </html>
