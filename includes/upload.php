@@ -17,9 +17,11 @@
 
 declare(strict_types=1);
 
-/** Max size for an employee profile photo (admin upload, not a live capture). */
+/** Max size for an employee profile photo (admin upload, not a live capture).
+ *  Real value comes from secure_config.php; this fallback only applies if that
+ *  define is somehow missing. The admin form compresses in-browser to fit. */
 if (!defined('EMPLOYEE_PHOTO_MAX_BYTES')) {
-    define('EMPLOYEE_PHOTO_MAX_BYTES', 200 * 1024); // 200 KB
+    define('EMPLOYEE_PHOTO_MAX_BYTES', 50 * 1024); // 50 KB
 }
 
 /**
@@ -53,7 +55,8 @@ function verified_image_mime(string $tmpPath): string
 /**
  * Store an admin-uploaded employee/admin photo (profile photo, ID card front/back).
  * Same pipeline as visit photos (verified MIME, random name, uploads/YYYY/MM/)
- * but capped at 200 KB.
+ * but capped at EMPLOYEE_PHOTO_MAX_BYTES (50 KB) - the admin form compresses
+ * the picked image in-browser to fit before it ever reaches here.
  *
  * @param array  $file    one entry from $_FILES (may be an empty/no-file entry)
  * @param string $prefix  filename prefix, e.g. 'employee' or 'employee_id'
@@ -75,7 +78,8 @@ function save_employee_photo(array $file, string $prefix = 'employee'): array
         return ['ok' => false, 'error' => 'The photo is empty.'];
     }
     if ($bytes > EMPLOYEE_PHOTO_MAX_BYTES) {
-        return ['ok' => false, 'error' => 'Photo must be 200 KB or smaller (this one is '
+        return ['ok' => false, 'error' => 'Photo must be '
+            . number_format(EMPLOYEE_PHOTO_MAX_BYTES / 1024, 0) . ' KB or smaller (this one is '
             . number_format($bytes / 1024, 0) . ' KB).'];
     }
 

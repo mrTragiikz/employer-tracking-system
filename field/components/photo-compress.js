@@ -16,16 +16,19 @@
  * step both need: replace the input's raw camera file with a compressed
  * version before the preview/gating code ever sees it.
  *
- * Usage: TrackPhotoCompress.compress(inputEl) returns a Promise that
- * resolves once inputEl.files[0] has been replaced with the compressed
- * version (same filename, image/jpeg). Resolves even on failure (falls
- * back to the ORIGINAL file untouched) - a compression bug must never be
- * the reason a field employee can't check in/out or log a visit at all.
+ * Usage: TrackPhotoCompress.compress(inputEl [, targetBytes]) returns a
+ * Promise that resolves once inputEl.files[0] has been replaced with the
+ * compressed version (same filename, image/jpeg). targetBytes is optional -
+ * it defaults to DEFAULT_TARGET_BYTES (~70 KB, the field-app camera photos);
+ * the admin employee form passes a smaller value for headshots/ID scans.
+ * Resolves even on failure (falls back to the ORIGINAL file untouched) - a
+ * compression bug must never be the reason a field employee can't check
+ * in/out or log a visit at all.
  */
 (function () {
   'use strict';
 
-  var TARGET_BYTES = 70 * 1024; // ~70 KB per photo, per requirement
+  var DEFAULT_TARGET_BYTES = 70 * 1024; // ~70 KB per photo (field-app default)
   // Progressively smaller max dimensions tried alongside quality - a huge
   // modern phone photo (e.g. 4080x3072, seen in this app's own real
   // uploads) can't hit 70 KB at full resolution no matter how low the JPEG
@@ -67,13 +70,12 @@
 
   /**
    * Tries every (dimension, quality) combination, LARGEST/HIGHEST first,
-   * and keeps the first result at or under TARGET_BYTES. If NOTHING gets
+   * and keeps the first result at or under targetBytes. If NOTHING gets
    * under target (a pathological case), falls back to the smallest/lowest
    * attempt anyway - a slightly-over-target photo is still far smaller
-   * than the untouched original, and must never block the employee's
-   * action outright.
+   * than the untouched original, and must never block the action outright.
    */
-  function findSmallestBlob(img) {
+  function findSmallestBlob(img, targetBytes) {
     var attempts = [];
     MAX_DIMENSIONS.forEach(function (dim) {
       QUALITIES.forEach(function (q) { attempts.push({ dim: dim, q: q }); });
@@ -91,7 +93,7 @@
       return canvasToBlob(canvas, attempt.q).then(function (blob) {
         if (!blob) return tryNext();
         if (!smallestSoFar || blob.size < smallestSoFar.size) smallestSoFar = blob;
-        if (blob.size <= TARGET_BYTES) return blob;
+        if (blob.size <= targetBytes) return blob;
         return tryNext();
       });
     }
@@ -104,22 +106,29 @@
    * (never rejects) - on any failure the ORIGINAL file is left in place
    * untouched, so a compression bug degrades to "upload is bigger than
    * ideal" rather than "the employee cannot submit at all".
+   *
+   * @param {HTMLInputElement} inputEl     the <input type="file">
+   * @param {number} [targetBytes]         max size to aim for; defaults to
+   *                                       DEFAULT_TARGET_BYTES (~70 KB)
    */
-  function compress(inputEl) {
+  function compress(inputEl, targetBytes) {
+    var target = (typeof targetBytes === 'number' && targetBytes > 0)
+      ? targetBytes : DEFAULT_TARGET_BYTES;
+
     var file = inputEl.files && inputEl.files[0];
     if (!file) return Promise.resolve();
     if (!file.type || file.type.indexOf('image/') !== 0) return Promise.resolve();
 
     // Already small enough (e.g. a low-res front camera, or a phone that
     // already compresses aggressively) - skip the work entirely.
-    if (file.size <= TARGET_BYTES) return Promise.resolve();
+    if (file.size <= target) return Promise.resolve();
 
     if (typeof HTMLCanvasElement === 'undefined' || !HTMLCanvasElement.prototype.toBlob) {
       return Promise.resolve(); // no canvas support - upload the original, server-side size cap is the safety net
     }
 
     return loadImage(file)
-      .then(findSmallestBlob)
+      .then(function (img) { return findSmallestBlob(img, target); })
       .then(function (blob) {
         if (!blob) return; // could not produce anything - keep the original
         var originalName = file.name || 'photo.jpg';

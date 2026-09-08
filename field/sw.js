@@ -25,7 +25,7 @@
 
 'use strict';
 
-const CACHE_VERSION = 'rajdoot-field-v1';
+const CACHE_VERSION = 'rajdoot-field-v2';
 
 /* <origin>/<base>/field/  - the exact scope this SW was registered with.
    Every cached URL and every lookup uses this absolute base, so cache.match()

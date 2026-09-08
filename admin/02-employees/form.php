@@ -90,7 +90,7 @@ require dirname(__DIR__) . '/components/header/header.php';
         <?php endif; ?>
       </div>
       <div class="employee-photo__body">
-        <label for="f-photo">Employee photo <span class="c-muted">(optional, JPEG/PNG/WebP, max 180 KB)</span></label>
+        <label for="f-photo">Employee photo <span class="c-muted">(optional, JPEG/PNG/WebP - large photos are shrunk automatically)</span></label>
         <input class="input" id="f-photo" name="photo" type="file" accept="image/jpeg,image/png,image/webp">
         <?php if ($isEdit && $curPhoto !== ''): ?>
           <label class="check employee-photo__remove">
@@ -239,7 +239,7 @@ require dirname(__DIR__) . '/components/header/header.php';
       ];
       foreach ($idShots as [$side, $label, $cur, $err]): ?>
         <div class="field id-shot <?= $err ? 'has-error' : '' ?>">
-          <label for="f-id-<?= $side ?>"><?= e($label) ?> <span class="c-muted">(optional, max 180 KB)</span></label>
+          <label for="f-id-<?= $side ?>"><?= e($label) ?> <span class="c-muted">(optional - large photos are shrunk automatically)</span></label>
           <div class="id-shot__row">
             <span class="id-shot__thumb" id="id-<?= $side ?>-thumb">
               <?php if ($cur !== ''): ?>
@@ -292,15 +292,27 @@ require dirname(__DIR__) . '/components/header/header.php';
     </div>
   </form>
 
+  <script src="<?= e(asset_url(APP_URL . '/field/components/photo-compress.js')) ?>"></script>
   <script>
     (function () {
-      var MAX = 180 * 1024; // must match EMPLOYEE_PHOTO_MAX_BYTES in secure_config.php
+      // Server-side hard cap (EMPLOYEE_PHOTO_MAX_BYTES in secure_config.php).
+      // Any picked photo is auto-compressed in the browser to fit under this
+      // BEFORE the size check below - so a full-size phone photo is fine to
+      // choose, it just gets shrunk. This number is only the last-resort
+      // "compression somehow could not get there" message.
+      var MAX = <?= (int) EMPLOYEE_PHOTO_MAX_BYTES ?>;
+      var MAX_KB = Math.round(MAX / 1024);
       var submit  = document.getElementById('f-submit');
       var oversize = {};                          // track which inputs are too big
+      var busy = {};                              // track which inputs are still compressing
 
       function refreshSubmit() {
-        submit.disabled = Object.keys(oversize).some(function (k) { return oversize[k]; });
+        var blocked = Object.keys(oversize).some(function (k) { return oversize[k]; })
+                   || Object.keys(busy).some(function (k) { return busy[k]; });
+        submit.disabled = blocked;
       }
+
+      var canCompress = !!(window.TrackPhotoCompress && window.TrackPhotoCompress.compress);
 
       // A file input + its preview node + its hint node. `onImage(url)` fills the
       // preview when a valid file is picked; `onClear()` restores the placeholder.
@@ -308,25 +320,45 @@ require dirname(__DIR__) . '/components/header/header.php';
         if (!input) return;
         input.addEventListener('change', function () {
           hint.textContent = ''; hint.className = hint.className.replace(/\s*is-(ok|bad)/g, '');
-          oversize[input.id] = false; refreshSubmit();
+          oversize[input.id] = false;
 
           var f = input.files && input.files[0];
-          if (!f) { onClear(); return; }
+          if (!f) { busy[input.id] = false; refreshSubmit(); onClear(); return; }
 
           if (!/^image\/(jpeg|png|webp)$/.test(f.type)) {
             hint.textContent = 'Not a JPEG, PNG or WebP image.';
             hint.className += ' is-bad';
-            input.value = ''; onClear(); return;
+            input.value = ''; busy[input.id] = false; refreshSubmit(); onClear(); return;
           }
-          if (f.size > MAX) {
-            hint.textContent = 'Too large: ' + Math.round(f.size / 1024) + ' KB. Must be 180 KB or smaller.';
-            hint.className += ' is-bad';
-            oversize[input.id] = true; refreshSubmit();
-            return;
+
+          // Compress in-browser to fit under MAX, then run the size check on
+          // the (now smaller) file. Compression resolves even on failure -
+          // it just leaves the original, and the size check below catches it.
+          var needsWork = f.size > MAX && canCompress;
+          if (needsWork) {
+            hint.textContent = 'Shrinking photo...';
+            busy[input.id] = true; refreshSubmit();
           }
-          hint.textContent = 'OK - ' + Math.round(f.size / 1024) + ' KB';
-          hint.className += ' is-ok';
-          onImage(URL.createObjectURL(f));
+          var step = needsWork
+            ? window.TrackPhotoCompress.compress(input, MAX)
+            : Promise.resolve();
+
+          step.then(function () {
+            busy[input.id] = false;
+            var g = (input.files && input.files[0]) || f;
+
+            if (g.size > MAX) {
+              hint.textContent = 'Still too large after shrinking: ' + Math.round(g.size / 1024)
+                + ' KB. Must be ' + MAX_KB + ' KB or smaller - try a smaller photo.';
+              hint.className = hint.className.replace(/\s*is-(ok|bad)/g, '') + ' is-bad';
+              oversize[input.id] = true; refreshSubmit();
+              return;
+            }
+            hint.textContent = 'OK - ' + Math.round(g.size / 1024) + ' KB';
+            hint.className = hint.className.replace(/\s*is-(ok|bad)/g, '') + ' is-ok';
+            refreshSubmit();
+            onImage(URL.createObjectURL(g));
+          });
         });
       }
 
