@@ -23,15 +23,17 @@ $filters = [
     'q' => trim((string) ($_GET['q'] ?? '')),
     'region' => trim((string) ($_GET['region'] ?? '')),
     'area' => trim((string) ($_GET['area'] ?? '')),
-    'status' => in_array($_GET['status'] ?? '', ['active', 'inactive'], true) ? $_GET['status'] : '',
+    'status' => in_array($_GET['status'] ?? '', ['active', 'inactive', 'former'], true) ? $_GET['status'] : '',
     'page' => (int) ($_GET['page'] ?? 1),
     'per_page' => (int) ($_GET['per_page'] ?? 10),
 ];
+$viewingFormer = $filters['status'] === 'former';
 
 $stats = employee_stats($pdo);
 $list = employees_list($pdo, $filters);
 $regions = employee_regions($pdo);
 $areas = employee_areas($pdo);
+$formerCount = former_employees_count($pdo);
 
 /** Build a URL to this page with some GET params changed. */
 function employees_url(array $override = []): string
@@ -48,18 +50,34 @@ require dirname(__DIR__) . '/components/header/header.php';
 
   <div class="page-head">
     <div>
-      <h1>Employees <span class="page-head__tag">(Field Employees)</span></h1>
-      <p class="section-note">Manage and view all field employees (Employees).</p>
+      <h1><?= $viewingFormer ? 'Former Employees' : 'Employees' ?>
+        <span class="page-head__tag">(Field Employees)</span></h1>
+      <p class="section-note">
+        <?= $viewingFormer
+          ? 'Employees who have left the job. Their full history stays on file - open one to view it.'
+          : 'Manage and view all field employees (Employees).' ?>
+      </p>
     </div>
     <div class="page-head__actions">
       <?php $qs = $_SERVER['QUERY_STRING'] ?? ''; ?>
-      <a class="btn" href="<?= e(APP_URL) ?>/admin/02-employees/api/export.php<?= $qs !== '' ? '?' . e($qs) : '' ?>">
-        <i class="bi bi-download"></i> Export
-      </a>
-      <?php if (!empty($me['is_super_admin'])): ?>
-        <a class="btn btn--primary" href="<?= e(APP_URL) ?>/admin/02-employees/form.php">
-          <i class="bi bi-plus-lg"></i> Add Employee
+      <?php if ($viewingFormer): ?>
+        <a class="btn" href="<?= e(APP_URL) ?>/admin/02-employees/">
+          <i class="bi bi-arrow-left"></i> Back to Employees
         </a>
+      <?php else: ?>
+        <?php if ($formerCount > 0): ?>
+          <a class="btn" href="<?= e(APP_URL) ?>/admin/02-employees/?status=former">
+            <i class="bi bi-person-dash"></i> Former Employees (<?= (int) $formerCount ?>)
+          </a>
+        <?php endif; ?>
+        <a class="btn" href="<?= e(APP_URL) ?>/admin/02-employees/api/export.php<?= $qs !== '' ? '?' . e($qs) : '' ?>">
+          <i class="bi bi-download"></i> Export
+        </a>
+        <?php if (!empty($me['is_super_admin'])): ?>
+          <a class="btn btn--primary" href="<?= e(APP_URL) ?>/admin/02-employees/form.php">
+            <i class="bi bi-plus-lg"></i> Add Employee
+          </a>
+        <?php endif; ?>
       <?php endif; ?>
     </div>
   </div>
@@ -69,6 +87,8 @@ require dirname(__DIR__) . '/components/header/header.php';
   <?php elseif ($flash === 'deleted'): ?><div class="flash flash--ok">Employee removed.</div>
   <?php elseif ($flash === 'pin'): ?><div class="flash flash--ok">PIN reset.</div>
   <?php elseif ($flash === 'device'): ?><div class="flash flash--ok">Device binding cleared - the Employee can pair a new phone on next login.</div>
+  <?php elseif ($flash === 'leftjob'): ?><div class="flash flash--ok">Employee marked as having left the job.</div>
+  <?php elseif ($flash === 'rejoined'): ?><div class="flash flash--ok">Employee reinstated - they can be given a phone and log in again.</div>
   <?php endif; ?>
 
   <!-- ===== stat cards ===== -->
@@ -114,9 +134,16 @@ require dirname(__DIR__) . '/components/header/header.php';
       </select>
 
       <select class="select" name="status" onchange="this.form.submit()">
-        <option value="">All Status</option>
-        <option value="active" <?= $filters['status'] === 'active' ? 'selected' : '' ?>>Active</option>
-        <option value="inactive" <?= $filters['status'] === 'inactive' ? 'selected' : '' ?>>Inactive</option>
+        <?php if ($viewingFormer): ?>
+          <option value="former" selected>Former Employees</option>
+        <?php else: ?>
+          <option value="">All Status</option>
+          <option value="active" <?= $filters['status'] === 'active' ? 'selected' : '' ?>>Active</option>
+          <option value="inactive" <?= $filters['status'] === 'inactive' ? 'selected' : '' ?>>Inactive</option>
+          <?php if ($formerCount > 0): ?>
+            <option value="former">Former Employees (<?= (int) $formerCount ?>)</option>
+          <?php endif; ?>
+        <?php endif; ?>
       </select>
 
       <button type="submit" class="btn btn--sm"><i class="bi bi-funnel"></i> Filter</button>
@@ -164,9 +191,15 @@ require dirname(__DIR__) . '/components/header/header.php';
               <?php $regionArea = trim(($d['region'] ?? '') . ' / ' . ($d['area'] ?? ''), ' /'); ?>
               <td><?= $regionArea !== '' ? e($regionArea) : '<span class="c-muted"> - </span>' ?></td>
               <td>
-                <span class="badge badge--<?= $d['is_active'] ? 'approved' : 'rejected' ?>">
-                  <?= $d['is_active'] ? 'Active' : 'Inactive' ?>
-                </span>
+                <?php if ($d['left_job_at'] !== null): ?>
+                  <span class="badge badge--rejected" title="Left the job">
+                    Left <?= e((new DateTimeImmutable($d['left_job_at']))->format('j M Y')) ?>
+                  </span>
+                <?php else: ?>
+                  <span class="badge badge--<?= $d['is_active'] ? 'approved' : 'rejected' ?>">
+                    <?= $d['is_active'] ? 'Active' : 'Inactive' ?>
+                  </span>
+                <?php endif; ?>
               </td>
               <td class="c-muted"><?= e((new DateTimeImmutable($d['created_at']))->format('j M Y')) ?></td>
               <td class="ta-right">
@@ -175,7 +208,7 @@ require dirname(__DIR__) . '/components/header/header.php';
                      href="<?= e(APP_URL) ?>/admin/02-employees/view.php?id=<?= (int) $d['id'] ?>">
                     <i class="bi bi-eye"></i> View
                   </a>
-                  <?php if (!empty($me['is_super_admin'])): ?>
+                  <?php if (!empty($me['is_super_admin']) && $d['left_job_at'] === null): ?>
                     <a class="row-btn row-btn--edit" title="Edit"
                        href="<?= e(APP_URL) ?>/admin/02-employees/form.php?id=<?= (int) $d['id'] ?>">
                       <i class="bi bi-pencil"></i>

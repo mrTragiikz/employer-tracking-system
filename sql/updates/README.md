@@ -38,3 +38,4 @@ phpMyAdmin → select the database → **Import** → choose the file.
 | Date | File | What |
 |------|------|------|
 | 2026-09-08 | `2026-09-08_field-remember-tokens.sql` | `field_remember_tokens` table — field-app "stay logged in" (Phase 1) |
+| 2026-09-08 | `2026-09-08_left-job.sql` | `users.left_job_at` — employee "Left the Job" / Former Employees |

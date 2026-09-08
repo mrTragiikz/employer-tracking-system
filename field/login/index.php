@@ -23,13 +23,16 @@ unset($_SESSION['login_error'], $_SESSION['login_phone']);
 
 $notice = null;
 $suspended = ($_GET['suspended'] ?? '') === '1';
+// A former employee ("Left the Job") - a permanent block, shown like the
+// suspended screen but with no polling (there is nothing to wait for).
+$leftJob = ($_GET['left'] ?? '') === '1';
 // phone passed by require_employee() when it bounced a suspended session here -
 // lets the suspended screen poll status.php and auto-reload on unlock.
 $suspendedPhone = $suspended ? trim((string) ($_GET['p'] ?? '')) : '';
 if (!preg_match('/^[0-9+\- ]{7,20}$/', $suspendedPhone)) {
     $suspendedPhone = '';
 }
-if ($suspended) {
+if ($suspended || $leftJob) {
     // handled as its own block below - distinct look from a plain notice
 } elseif (($_GET['bye'] ?? '') === '1') {
     $notice = 'You have been signed out.';
@@ -74,7 +77,17 @@ $year    = date('Y');
              alt="<?= e($appName) ?>">
       </div>
 
-      <?php if ($suspended): ?>
+      <?php if ($leftJob): ?>
+
+        <!-- ===== former employee ("Left the Job") - permanent, no polling ===== -->
+        <div class="fl-suspended">
+          <span class="fl-suspended__icon"><i class="bi bi-box-arrow-right"></i></span>
+          <h1 class="fl-suspended__title">Account No Longer Active</h1>
+          <p class="fl-suspended__sub">This employee has left the job</p>
+          <p class="fl-suspended__note">If you believe this is a mistake, please contact the administrator.</p>
+        </div>
+
+      <?php elseif ($suspended): ?>
 
         <!-- ===== account suspended - blocks the form entirely, nothing to type ===== -->
         <div class="fl-suspended"<?= $suspendedPhone !== '' ? ' data-poll-phone="' . e($suspendedPhone) . '"' : '' ?>>

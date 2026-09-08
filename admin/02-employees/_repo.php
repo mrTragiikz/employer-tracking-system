@@ -13,9 +13,13 @@ declare(strict_types=1);
 /**
  * One page of Employees for the list table, with the filters applied.
  *
- * @param array $f filters: q, region, area, status ('active'|'inactive'|''),
- * page (1-based), per_page
+ * @param array $f filters: q, region, area,
+ *   status ('active'|'inactive'|'former'|''), page (1-based), per_page
  * @return array{rows: array<int,array>, total: int, page: int, per_page: int, pages: int}
+ *
+ * By default FORMER employees (users.left_job_at set) are excluded - they live
+ * under their own "Former Employees" view. Pass status = 'former' to list only
+ * them.
  */
 function employees_list(PDO $pdo, array $f): array
 {
@@ -25,6 +29,14 @@ function employees_list(PDO $pdo, array $f): array
 
     $where = ["u.role = 'employee'", 'u.deleted_at IS NULL'];
     $args = [];
+
+    $status = $f['status'] ?? '';
+    if ($status === 'former') {
+        $where[] = 'u.left_job_at IS NOT NULL';
+    } else {
+        // active / inactive / all(default): only currently-employed people
+        $where[] = 'u.left_job_at IS NULL';
+    }
 
     if (!empty($f['q'])) {
         $where[] = '(u.name LIKE ? OR u.phone LIKE ? OR u.email LIKE ? OR u.code LIKE ?)';
@@ -39,9 +51,9 @@ function employees_list(PDO $pdo, array $f): array
         $where[] = 'u.area = ?';
         $args[] = $f['area'];
     }
-    if (($f['status'] ?? '') === 'active') {
+    if ($status === 'active') {
         $where[] = 'u.is_active = 1';
-    } elseif (($f['status'] ?? '') === 'inactive') {
+    } elseif ($status === 'inactive') {
         $where[] = 'u.is_active = 0';
     }
 
@@ -59,7 +71,7 @@ function employees_list(PDO $pdo, array $f): array
     // page rows + visit count per Employee
     $sql = "
         SELECT u.id, u.name, u.code, u.phone, u.email, u.region, u.area,
-               u.is_active, u.created_at, u.last_login_at, u.device_id,
+               u.is_active, u.left_job_at, u.created_at, u.last_login_at, u.device_id,
                u.photo_path, u.vehicle_type,
                (SELECT COUNT(*) FROM visits v WHERE v.employee_id = u.id) AS visit_count
           FROM users u
@@ -98,7 +110,11 @@ function employees_all_for_export(PDO $pdo, array $f): array
     return $out;
 }
 
-/** One Employee by id, or null. */
+/**
+ * One Employee by id, or null. Includes FORMER employees (left_job_at set) -
+ * the detail page must still open for them so their whole history stays
+ * browsable. Only a true delete (deleted_at) hides a row from here.
+ */
 function employee_find(PDO $pdo, int $id): ?array
 {
     $stmt = $pdo->prepare(
@@ -107,6 +123,15 @@ function employee_find(PDO $pdo, int $id): ?array
     $stmt->execute([$id]);
     $row = $stmt->fetch();
     return $row ?: null;
+}
+
+/** How many former employees there are (left_job_at set, not deleted). */
+function former_employees_count(PDO $pdo): int
+{
+    return (int) $pdo->query(
+        "SELECT COUNT(*) FROM users
+          WHERE role = 'employee' AND deleted_at IS NULL AND left_job_at IS NOT NULL"
+    )->fetchColumn();
 }
 
 /** Human label for a users.document_type value, or a generic fallback. */
@@ -656,7 +681,9 @@ function employee_stats(PDO $pdo): array
           WHERE a.work_date = ?", [$today]);
 
     return [
-        'total' => (int) $scalar($pdo, "SELECT COUNT(*) FROM users WHERE role = 'employee' AND deleted_at IS NULL"),
+        // "Total Employees" = currently employed only (former employees, with
+        // left_job_at set, are counted on the Former Employees view instead).
+        'total' => (int) $scalar($pdo, "SELECT COUNT(*) FROM users WHERE role = 'employee' AND deleted_at IS NULL AND left_job_at IS NULL"),
         'active_today' => (int) $scalar($pdo, "SELECT COUNT(DISTINCT employee_id) FROM attendance WHERE work_date = ?", [$today]),
         'visits_today' => (int) $scalar($pdo, "SELECT COUNT(*) FROM visits WHERE work_date = ?", [$today]),
         'km_today' => $kmToday,

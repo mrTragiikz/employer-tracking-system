@@ -425,10 +425,20 @@ function require_employee(): array
     }
 
     $row = $pdo->prepare(
-        "SELECT is_active, deleted_at, security_stamp_at, phone FROM users WHERE id = ? AND role = 'employee'"
+        "SELECT is_active, deleted_at, left_job_at, security_stamp_at, phone FROM users WHERE id = ? AND role = 'employee'"
     );
     $row->execute([$u['id']]);
     $state = $row->fetch();
+
+    // "Left the Job" is a permanent state, distinct from a temporary Lock:
+    // the suspended screen polls status.php expecting to be unlocked, which
+    // won't happen here - so send a former employee to a plain "no longer
+    // active" message instead of the auto-reloading suspended screen.
+    if ($state !== false && $state['left_job_at'] !== null) {
+        revoke_remember_token($pdo);
+        logout_session();
+        redirect(APP_URL . '/field/login/?left=1');
+    }
 
     if ($state === false || (int) $state['is_active'] !== 1 || $state['deleted_at'] !== null) {
         $phone = $state['phone'] ?? ($u['phone'] ?? '');
@@ -621,7 +631,7 @@ function employee_authenticate(PDO $pdo, string $phone, string $pin, string $dev
     }
 
     $st = $pdo->prepare(
-        "SELECT id, role, name, phone, secret_hash, is_active,
+        "SELECT id, role, name, phone, secret_hash, is_active, left_job_at,
                 failed_logins, locked_until, device_id
            FROM users
           WHERE role = 'employee' AND phone = ? AND deleted_at IS NULL
@@ -642,6 +652,17 @@ function employee_authenticate(PDO $pdo, string $phone, string $pin, string $dev
         record_login_attempt($pdo, $phone, false);
         auth_event($pdo, (int) $u['id'], 'locked', 'login attempt while locked');
         return 'locked';
+    }
+
+    // Left the Job - a permanent state. Like the suspended check below, done
+    // BEFORE password_verify() so a correct PIN can't trip the auto-lock or
+    // read as "wrong PIN". Distinct return so the login page shows the right
+    // message (and NOT the auto-reloading suspended screen, which polls for
+    // an unlock that will never come).
+    if ($u['left_job_at'] !== null) {
+        record_login_attempt($pdo, $phone, false);
+        auth_event($pdo, (int) $u['id'], 'login_fail', 'former employee (left the job)');
+        return 'left';
     }
 
     // Suspended by an admin (Lock Employee) - a distinct case from a wrong

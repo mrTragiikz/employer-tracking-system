@@ -72,6 +72,13 @@ if ($result === 'suspended') {
     redirect($loginUrl . '?suspended=1');
 }
 
+if ($result === 'left') {
+    // The employee has permanently left the job. A plain, final message -
+    // NOT the suspended screen (which polls for an unlock that never comes).
+    session_write_close();
+    redirect($loginUrl . '?left=1');
+}
+
 $messages = [
     'throttled' => 'Too many failed attempts. Wait a few minutes and try again.',
     'locked'    => 'This account is locked after repeated failures. Try again in 15 minutes.',

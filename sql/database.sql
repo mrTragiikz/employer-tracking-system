@@ -110,9 +110,18 @@ CREATE TABLE `users` (
   `failed_logins` SMALLINT UNSIGNED NOT NULL DEFAULT 0,
   `locked_until` DATETIME DEFAULT NULL,
 
+  -- "Left the Job": the employee has permanently left. Set = cannot log in
+  -- (a distinct state from a temporary Lock via is_active), removed from the
+  -- active Employees list, but the whole record - attendance, visits, routes,
+  -- evidence photos - stays fully browsable under a "Former Employees" view.
+  -- NULL = still employed. Cleared again by the "Rejoin" action.
+  -- NOT the same as deleted_at (that is the rare true wipe; this is offboarding).
+  `left_job_at` DATETIME DEFAULT NULL,
+
   -- Bumped by any admin action that must kill an Employee's CURRENT session
-  -- immediately (lock, PIN reset, device reset) - see require_employee() in
-  -- includes/auth.php, which compares this against the session's login_at.
+  -- immediately (lock, PIN reset, device reset, leave-job) - see
+  -- require_employee() in includes/auth.php, which compares this against the
+  -- session's login_at.
   `security_stamp_at` DATETIME DEFAULT NULL,
 
   `last_login_at` DATETIME DEFAULT NULL,

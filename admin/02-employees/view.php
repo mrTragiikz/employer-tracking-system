@@ -137,10 +137,22 @@ require dirname(__DIR__) . '/components/mapbox/mapbox.php';
       </p>
     </div>
     <div class="page-head__actions">
-      <a class="btn" href="<?= e(APP_URL) ?>/admin/02-employees/">
-        <i class="bi bi-arrow-left"></i> Back to Employees
+      <?php $isFormer = $employee['left_job_at'] !== null; ?>
+      <a class="btn" href="<?= e(APP_URL) ?>/admin/02-employees/<?= $isFormer ? '?status=former' : '' ?>">
+        <i class="bi bi-arrow-left"></i> Back to <?= $isFormer ? 'Former Employees' : 'Employees' ?>
       </a>
-      <?php if (!empty($me['is_super_admin'])): ?>
+      <?php if (!empty($me['is_super_admin']) && $isFormer): ?>
+        <?php /* Former employee: the only action is Rejoin. Everything else
+                 (edit, PIN, device, lock, delete) is hidden - the record is
+                 read-only history now. */ ?>
+        <form method="post" action="<?= e(APP_URL) ?>/admin/02-employees/api/rejoin.php" class="js-confirm" style="margin:0"
+              data-confirm-title="Reinstate employee?" data-confirm-label="Rejoin" data-confirm-tone="primary"
+              data-confirm-body="Bring <?= e($employee['name']) ?> back as an active employee? They will need a PIN reset and to pair a phone on their next login.">
+          <?= csrf_field() ?>
+          <input type="hidden" name="id" value="<?= (int) $id ?>">
+          <button type="submit" class="btn btn--primary"><i class="bi bi-arrow-counterclockwise"></i> Rejoin</button>
+        </form>
+      <?php elseif (!empty($me['is_super_admin'])): ?>
         <a class="btn" href="<?= e(APP_URL) ?>/admin/02-employees/form.php?id=<?= (int) $id ?>">
           <i class="bi bi-pencil"></i> Edit Employee
         </a>
@@ -179,9 +191,16 @@ require dirname(__DIR__) . '/components/mapbox/mapbox.php';
             <button type="submit" class="btn btn--primary"><i class="bi bi-unlock-fill"></i> Unlock Employee</button>
           </form>
         <?php endif; ?>
+        <form method="post" action="<?= e(APP_URL) ?>/admin/02-employees/api/leave-job.php" class="js-confirm" style="margin:0"
+              data-confirm-title="Mark as left the job?" data-confirm-label="Left the Job"
+              data-confirm-body="Mark <?= e($employee['name']) ?> as having left the job? They will be signed out and cannot log in. Their entire history - attendance, visits, routes, evidence photos - stays on file under Former Employees, and you can Rejoin them later.">
+          <?= csrf_field() ?>
+          <input type="hidden" name="id" value="<?= (int) $id ?>">
+          <button type="submit" class="btn btn--danger"><i class="bi bi-box-arrow-right"></i> Left the Job</button>
+        </form>
         <form method="post" action="<?= e(APP_URL) ?>/admin/02-employees/api/delete.php" class="js-confirm" style="margin:0"
               data-confirm-title="Delete employee?" data-confirm-label="Delete Employee"
-              data-confirm-body="Delete <?= e($employee['name']) ?>? Past records stay on file.">
+              data-confirm-body="Delete <?= e($employee['name']) ?>? Past records stay on file. Prefer 'Left the Job' unless you really want them gone from every list.">
           <?= csrf_field() ?>
           <input type="hidden" name="id" value="<?= (int) $id ?>">
           <button type="submit" class="btn btn--danger"><i class="bi bi-trash3"></i> Delete Employee</button>
@@ -197,6 +216,24 @@ require dirname(__DIR__) . '/components/mapbox/mapbox.php';
   <?php elseif ($flash === 'locked'): ?><div class="flash flash--ok">Employee locked - they have been signed out and cannot log in until unlocked.</div>
   <?php elseif ($flash === 'unlocked'): ?><div class="flash flash--ok">Employee unlocked - they can log in again.</div>
   <?php elseif ($flash === 'unlocked_throttle'): ?><div class="flash flash--ok">Login lockout cleared - they can try signing in again now.</div>
+  <?php elseif ($flash === 'leftjob'): ?><div class="flash flash--ok">Marked as having left the job. Their full history is kept - it stays visible here and under Former Employees.</div>
+  <?php elseif ($flash === 'rejoined'): ?><div class="flash flash--ok">Employee reinstated. Reset their PIN so they can sign in again.</div>
+  <?php endif; ?>
+  <?php if ($err === 'leavejob'): ?><div class="flash flash--err">Could not update. Please try again.</div>
+  <?php elseif ($err === 'rejoin'): ?><div class="flash flash--err">Could not reinstate. Please try again.</div>
+  <?php endif; ?>
+
+  <?php if ($employee['left_job_at'] !== null): ?>
+    <div class="flash flash--err throttle-banner">
+      <div>
+        <strong><i class="bi bi-box-arrow-right"></i> Former employee &mdash; left the job on
+          <?= e((new DateTimeImmutable($employee['left_job_at']))->format('j F Y')) ?></strong>
+        <p class="section-note">
+          This account cannot log in. The whole record below - attendance, visits, routes,
+          evidence photos, PDFs - stays on file, read-only. Use <strong>Rejoin</strong> if they come back.
+        </p>
+      </div>
+    </div>
   <?php endif; ?>
 
   <?php
@@ -239,9 +276,13 @@ require dirname(__DIR__) . '/components/mapbox/mapbox.php';
       <div class="profile-id">
         <div class="profile-id__name">
           <?= e($employee['name']) ?>
-          <span class="badge badge--<?= $employee['is_active'] ? 'approved' : 'rejected' ?>">
-            <?= $employee['is_active'] ? 'Active' : 'Inactive' ?>
-          </span>
+          <?php if ($employee['left_job_at'] !== null): ?>
+            <span class="badge badge--rejected">Former</span>
+          <?php else: ?>
+            <span class="badge badge--<?= $employee['is_active'] ? 'approved' : 'rejected' ?>">
+              <?= $employee['is_active'] ? 'Active' : 'Inactive' ?>
+            </span>
+          <?php endif; ?>
         </div>
         <div class="profile-id__code">Employee Code: <?= e($employee['code'] ?: '-') ?></div>
         <div class="profile-id__line"><i class="bi bi-telephone"></i> <?= e($employee['phone']) ?></div>
