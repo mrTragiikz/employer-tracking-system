@@ -18,9 +18,11 @@
  *
  * THE ROUTE LINE FOLLOWS THE ROADS. A straight line is drawn first (map never
  * blank), then swapped for the real road path fetched from the Mapbox
- * Directions API in one call for the whole day (fetchRoadGeometry(), with
- * steps=true so each hop / "leg" comes back separately). Each leg is then
- * shifted a few metres to the RIGHT of its own direction of travel
+ * Directions API - ONE call per hop (fetchRoadGeometry() fans out over
+ * fetchOneHop(), so one un-routable hop only straightens itself, not the
+ * whole day; the first/last hop also get a loose road-snap radius since they
+ * touch the check-in / check-out point, often logged inside an office). Each
+ * leg is then shifted a few metres to the RIGHT of its own direction of travel
  * (offsetLeg / LANE_OFFSET_METRES) - so when the employee drives out and
  * back on the same road, the two legs land on opposite sides like two lanes
  * and read as two separate lines, not one thick stroke with arrows both
@@ -371,22 +373,39 @@
   // pointing both ways. Small enough to still read as "the same road".
   var LANE_OFFSET_METRES = 4.0;
 
+  // How close (metres) a GPS point must be to a mapped road for Mapbox to
+  // snap it, per leg. SHOP-TO-SHOP hops use the tight value: a shop visit is
+  // logged from on/beside a road, and a loose radius there let Mapbox snap a
+  // point a few metres into a yard/side-lane and then route a little in-and-
+  // out LOOP to "reach" it - the rounding artifact near a stop the client did
+  // not want. The FIRST and LAST hop use the loose value because those touch
+  // the check-in / check-out point, which is often NOT beside a road - the
+  // worker punches in from inside the office/depot/home, tens of metres off
+  // the nearest road. A tight radius there makes Mapbox reject that point with
+  // NoSegment, and (when it was one whole-day call) that killed the entire
+  // route back to straight lines. Loose here just snaps that one end to the
+  // nearest road and the line follows roads from there.
+  var SNAP_TIGHT_M = 25;
+  var SNAP_LOOSE_M = 200;
+
   /**
-   * ONE Mapbox Directions call for the whole day's waypoints, in order.
-   * steps=true also returns route.legs[] with each leg's own geometry - which
-   * is what lets us offset each leg independently (see offsetLeg / the leg
-   * loop in addRouteLine). Resolves to { legs: [[ [lng,lat], ... ], ...] } -
-   * one coordinate array per hop (check-in -> visit 1, visit 1 -> visit 2,
-   * ...). On ANY failure it resolves to { legs: null } and the straight line
-   * already on screen just stays - the map is never left broken/empty.
+   * The road-following path for the whole day, built one HOP AT A TIME rather
+   * than in a single Directions call. steps=true gives each hop's geometry so
+   * we can offset each independently (see offsetLeg / the leg loop in
+   * addRouteLine). Resolves to { legs: [[ [lng,lat], ... ], ...] } - one
+   * coordinate array per hop (check-in -> visit 1, visit 1 -> visit 2, ...).
    *
-   *   geometries=geojson  coords come back as [lng,lat]
-   *   overview=full        full-resolution path
-   *   steps=true           per-leg geometry (route.legs[].steps[].geometry)
-   *   radiuses=unlimited   a GPS point far from any mapped road is snapped to
-   *                        the nearest road however far, not rejected
-   *   NoRoute/NoSegment return HTTP 200 with body code != 'Ok' - the body's
-   *   own code must be checked; res.ok alone misses it.
+   * WHY PER-HOP, NOT ONE CALL: one bad point (an office check-in far from any
+   * road) made the single whole-day call return NoSegment, and the code then
+   * drew the ENTIRE day as straight lines. Per-hop, a hop Mapbox can't route
+   * falls back to a straight line for THAT HOP ONLY - every other hop still
+   * follows the roads. The first and last hop also get a much looser snap
+   * radius (SNAP_LOOSE_M) since they touch the check-in / check-out point.
+   *
+   * On ANY failure a hop falls back to its straight segment; the function
+   * always resolves with a full legs[] (never null) so the map is never left
+   * broken. NoRoute/NoSegment come back as HTTP 200 with body code != 'Ok' -
+   * the body's own code must be checked; res.ok alone misses it.
    */
   function fetchRoadGeometry(coords, token) {
     var straightLegs = [];
@@ -396,24 +415,41 @@
     if (spanMeters(coords) < SAME_PLACE_ROUTE_METERS) {
       return Promise.resolve(fail);
     }
-    var coordStr = coords.map(function (c) { return c[0] + ',' + c[1]; }).join(';');
-    // radiuses=25 (not 'unlimited'): a stop is normally logged from on/beside
-    // a road, so snapping it to a road within 25 m is right. 'unlimited' let
-    // Mapbox snap a point that's a few metres off (a side lane, a yard) to a
-    // road and then route a little in-and-out LOOP to "correctly" reach it -
-    // that's the rounding artifact near a stop the client did not want. 25 m
-    // keeps the line coming straight up the road, touching the stop, and
-    // carrying on. approaches=unrestricted stops Mapbox from doing a loop to
-    // hit a waypoint from a particular side.
-    var radiuses   = coords.map(function () { return '25'; }).join(';');
-    var approaches = coords.map(function () { return 'unrestricted'; }).join(';');
+
+    var hopCount = coords.length - 1;
+    var hops = [];
+    for (var h = 0; h < hopCount; h++) {
+      // Loose snap on the first hop (starts at check-in) and the last hop
+      // (ends at check-out); tight on every shop-to-shop hop in between.
+      var isEndHop = (h === 0 || h === hopCount - 1);
+      hops.push(fetchOneHop(coords[h], coords[h + 1], isEndHop ? SNAP_LOOSE_M : SNAP_TIGHT_M,
+        token, straightLegs[h]));
+    }
+
+    return Promise.all(hops).then(function (legs) {
+      return { legs: legs };
+    }).catch(function (err) {
+      console.warn('[TrackMapboxRoute] Directions per-hop batch failed: '
+        + (err && err.message) + ' - keeping the straight line.');
+      return fail;
+    });
+  }
+
+  /**
+   * One Directions call for a single hop (two waypoints). Resolves to that
+   * hop's [ [lng,lat], ... ] road path, or - on any HTTP error, non-'Ok' body
+   * code (NoSegment / NoRoute), timeout, or malformed response - to
+   * straightSeg ([start, end]) so the caller always gets a drawable leg.
+   */
+  function fetchOneHop(a, b, radiusM, token, straightSeg) {
+    var coordStr = a[0] + ',' + a[1] + ';' + b[0] + ',' + b[1];
     var url = 'https://api.mapbox.com/directions/v5/mapbox/driving/' + coordStr
       + '?geometries=geojson&overview=full&steps=true'
-      + '&radiuses=' + radiuses + '&approaches=' + approaches
-      // continue_straight=false: at a via-point (a shop the employee stopped
-      // at then carried on FROM) Mapbox is allowed to keep going the same way
-      // instead of being forced into a U-turn / drive-around-the-block loop
-      // just to "leave" the waypoint - that loop was the rounding near stop 3.
+      + '&radiuses=' + radiusM + ';' + radiusM
+      // approaches=unrestricted: don't loop around to hit a waypoint from a
+      // particular side. continue_straight=false: allowed to carry on the
+      // same way through a via-point instead of a forced U-turn.
+      + '&approaches=unrestricted;unrestricted'
       + '&continue_straight=false'
       + '&access_token=' + encodeURIComponent(token);
 
@@ -427,7 +463,7 @@
             + (res.status === 401 ? ' - Mapbox token invalid'
               : res.status === 403 ? ' - Mapbox token is URL-restricted; this origin is not allowed'
               : res.status === 429 ? ' - Mapbox rate limit hit' : '')
-            + '. Keeping the straight line.');
+            + '. Straight line for this hop.');
         }
         return res.json();
       })
@@ -435,32 +471,27 @@
         if (timer) clearTimeout(timer);
         if (data.code !== 'Ok') {
           console.warn('[TrackMapboxRoute] Directions code=' + data.code
-            + (data.message ? ' (' + data.message + ')' : '') + ' - keeping the straight line.');
-          return fail;
+            + (data.message ? ' (' + data.message + ')' : '')
+            + ' - straight line for this hop.');
+          return straightSeg;
         }
         var route = data.routes && data.routes[0];
-        if (!route || !Array.isArray(route.legs) || !route.legs.length) {
-          console.warn('[TrackMapboxRoute] Directions Ok but no legs - keeping the straight line.');
-          return fail;
-        }
-        // Concatenate each leg's step geometries into that leg's own path.
-        var legs = route.legs.map(function (leg, i) {
-          var pts = [];
-          (leg.steps || []).forEach(function (step) {
-            var sc = step.geometry && step.geometry.coordinates;
-            if (!Array.isArray(sc)) return;
-            var start = pts.length ? 1 : 0; // step[0] == prev step's last pt
-            for (var p = start; p < sc.length; p++) pts.push(sc[p]);
-          });
-          return pts.length >= 2 ? pts : (straightLegs[i] || []);
+        var leg = route && Array.isArray(route.legs) && route.legs[0];
+        if (!leg) return straightSeg;
+        var pts = [];
+        (leg.steps || []).forEach(function (step) {
+          var sc = step.geometry && step.geometry.coordinates;
+          if (!Array.isArray(sc)) return;
+          var start = pts.length ? 1 : 0; // step[0] == prev step's last pt
+          for (var p = start; p < sc.length; p++) pts.push(sc[p]);
         });
-        return { legs: legs };
+        return pts.length >= 2 ? pts : straightSeg;
       })
       .catch(function (err) {
         if (timer) clearTimeout(timer);
-        console.warn('[TrackMapboxRoute] Directions request failed: ' + (err && err.message)
-          + ' - keeping the straight line.');
-        return fail;
+        console.warn('[TrackMapboxRoute] Directions hop failed: ' + (err && err.message)
+          + ' - straight line for this hop.');
+        return straightSeg;
       });
   }
 
