@@ -54,7 +54,7 @@ require dirname(__DIR__) . '/components/header/header.php';
         <span class="page-head__tag">(Field Employees)</span></h1>
       <p class="section-note">
         <?= $viewingFormer
-          ? 'Employees who have left the job. Their full history stays on file - open one to view it.'
+          ? 'Employees who have left the job. Their full history stays on file. Open one to view it.'
           : 'Manage and view all field employees (Employees).' ?>
       </p>
     </div>
@@ -88,7 +88,7 @@ require dirname(__DIR__) . '/components/header/header.php';
   <?php elseif ($flash === 'pin'): ?><div class="flash flash--ok">PIN reset.</div>
   <?php elseif ($flash === 'device'): ?><div class="flash flash--ok">Device binding cleared - the Employee can pair a new phone on next login.</div>
   <?php elseif ($flash === 'leftjob'): ?><div class="flash flash--ok">Employee marked as having left the job.</div>
-  <?php elseif ($flash === 'rejoined'): ?><div class="flash flash--ok">Employee reinstated - they can be given a phone and log in again.</div>
+  <?php elseif ($flash === 'rejoined'): ?><div class="flash flash--ok">Employee reinstated. Reset their PIN so they can sign in again.</div>
   <?php endif; ?>
 
   <!-- ===== stat cards ===== -->

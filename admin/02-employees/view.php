@@ -147,7 +147,7 @@ require dirname(__DIR__) . '/components/mapbox/mapbox.php';
                  read-only history now. */ ?>
         <form method="post" action="<?= e(APP_URL) ?>/admin/02-employees/api/rejoin.php" class="js-confirm" style="margin:0"
               data-confirm-title="Reinstate employee?" data-confirm-label="Rejoin" data-confirm-tone="primary"
-              data-confirm-body="Bring <?= e($employee['name']) ?> back as an active employee? They will need a PIN reset and to pair a phone on their next login.">
+              data-confirm-body="Bring <?= e($employee['name']) ?> back as an active employee? After this, reset their PIN so they can sign in, and they will pair a phone on their next login.">
           <?= csrf_field() ?>
           <input type="hidden" name="id" value="<?= (int) $id ?>">
           <button type="submit" class="btn btn--primary"><i class="bi bi-arrow-counterclockwise"></i> Rejoin</button>
@@ -193,14 +193,14 @@ require dirname(__DIR__) . '/components/mapbox/mapbox.php';
         <?php endif; ?>
         <form method="post" action="<?= e(APP_URL) ?>/admin/02-employees/api/leave-job.php" class="js-confirm" style="margin:0"
               data-confirm-title="Mark as left the job?" data-confirm-label="Left the Job"
-              data-confirm-body="Mark <?= e($employee['name']) ?> as having left the job? They will be signed out and cannot log in. Their entire history - attendance, visits, routes, evidence photos - stays on file under Former Employees, and you can Rejoin them later.">
+              data-confirm-body="Mark <?= e($employee['name']) ?> as having left the job? They will be signed out and can no longer log in. Their full history (attendance, visits, routes and evidence photos) stays on file under Former Employees, and you can Rejoin them later if they come back.">
           <?= csrf_field() ?>
           <input type="hidden" name="id" value="<?= (int) $id ?>">
           <button type="submit" class="btn btn--danger"><i class="bi bi-box-arrow-right"></i> Left the Job</button>
         </form>
         <form method="post" action="<?= e(APP_URL) ?>/admin/02-employees/api/delete.php" class="js-confirm" style="margin:0"
               data-confirm-title="Delete employee?" data-confirm-label="Delete Employee"
-              data-confirm-body="Delete <?= e($employee['name']) ?>? Past records stay on file. Prefer 'Left the Job' unless you really want them gone from every list.">
+              data-confirm-body="Delete <?= e($employee['name']) ?>? Past records stay on file. Prefer &quot;Left the Job&quot; unless you really want them gone from every list.">
           <?= csrf_field() ?>
           <input type="hidden" name="id" value="<?= (int) $id ?>">
           <button type="submit" class="btn btn--danger"><i class="bi bi-trash3"></i> Delete Employee</button>
@@ -216,7 +216,7 @@ require dirname(__DIR__) . '/components/mapbox/mapbox.php';
   <?php elseif ($flash === 'locked'): ?><div class="flash flash--ok">Employee locked - they have been signed out and cannot log in until unlocked.</div>
   <?php elseif ($flash === 'unlocked'): ?><div class="flash flash--ok">Employee unlocked - they can log in again.</div>
   <?php elseif ($flash === 'unlocked_throttle'): ?><div class="flash flash--ok">Login lockout cleared - they can try signing in again now.</div>
-  <?php elseif ($flash === 'leftjob'): ?><div class="flash flash--ok">Marked as having left the job. Their full history is kept - it stays visible here and under Former Employees.</div>
+  <?php elseif ($flash === 'leftjob'): ?><div class="flash flash--ok">Marked as having left the job. Their full history is kept and stays visible here and under Former Employees.</div>
   <?php elseif ($flash === 'rejoined'): ?><div class="flash flash--ok">Employee reinstated. Reset their PIN so they can sign in again.</div>
   <?php endif; ?>
   <?php if ($err === 'leavejob'): ?><div class="flash flash--err">Could not update. Please try again.</div>
@@ -226,11 +226,15 @@ require dirname(__DIR__) . '/components/mapbox/mapbox.php';
   <?php if ($employee['left_job_at'] !== null): ?>
     <div class="flash flash--err throttle-banner">
       <div>
-        <strong><i class="bi bi-box-arrow-right"></i> Former employee &mdash; left the job on
-          <?= e((new DateTimeImmutable($employee['left_job_at']))->format('j F Y')) ?></strong>
+        <strong><i class="bi bi-box-arrow-right"></i>
+          Former employee. Left the job on
+          <?= e((new DateTimeImmutable($employee['left_job_at']))->format('j F Y')) ?>.
+        </strong>
         <p class="section-note">
-          This account cannot log in. The whole record below - attendance, visits, routes,
-          evidence photos, PDFs - stays on file, read-only. Use <strong>Rejoin</strong> if they come back.
+          This account can no longer log in. Everything below stays on file,
+          read only: attendance, visits, routes, evidence photos and PDF
+          reports. If this employee comes back, use the
+          <strong>Rejoin</strong> button.
         </p>
       </div>
     </div>
