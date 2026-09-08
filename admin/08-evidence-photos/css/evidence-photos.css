@@ -1,0 +1,497 @@
+/* admin/08-evidence-photos/css/evidence-photos.css
+ * This section's own styles. Palette tokens come from the header component,
+ * which loads first. No shared admin stylesheet by design.
+ *
+ * COMPACT SCALE - matches 01-dashboard density. Do not enlarge:
+ * card padding 15px | gaps 14px | h2 13.5px | metrics 15px
+ */
+
+/* ---- card shell ---- */
+.card {
+  background: var(--card-bg);
+  border: 1px solid var(--border-soft);
+  border-radius: var(--radius-card);
+  box-shadow: var(--shadow-card);
+  padding: 15px;
+}
+.card + .card { margin-top: 14px; }
+.card__head {
+  display: flex; align-items: center; justify-content: space-between;
+  margin-bottom: 12px;
+}
+.card__head h2 { font-size: 13.5px; }
+
+.section-note { color: var(--text-muted); font-size: 11.5px; line-height: 1.5; }
+.c-muted { color: var(--text-muted); }
+.stack { display: flex; flex-direction: column; gap: 1px; line-height: 1.35; }
+
+/* ---- inputs / selects / buttons ---- */
+.input, .select {
+  appearance: none;
+  background: var(--card-bg);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 7px 11px;
+  font: inherit; font-size: 12px;
+  color: var(--text);
+}
+.input::placeholder { color: var(--text-muted); }
+.select { padding-right: 26px; }
+
+.btn {
+  display: inline-flex; align-items: center; gap: 7px;
+  padding: 7px 13px;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--border);
+  background: var(--card-bg);
+  color: var(--text);
+  font: inherit; font-size: 12px; font-weight: 600;
+  cursor: pointer; text-decoration: none;
+}
+.btn:hover { background: var(--panel-inset); }
+.btn--sm { padding: 5px 9px; font-size: 11px; }
+
+/* ---- pagination ---- */
+.pager { display: flex; align-items: center; gap: 6px; font-size: 11.5px; }
+.pager a, .pager span {
+  padding: 5px 9px; border-radius: 7px;
+  border: 1px solid var(--border); color: var(--text-2);
+  text-decoration: none;
+}
+.pager a:hover { background: var(--panel-inset); }
+.pager .is-current { background: var(--brown); border-color: var(--brown); color: #fff; }
+.pager .is-disabled { opacity: .4; }
+.pager__gap { border: 0 !important; padding: 5px 2px; }
+
+/* =========================================================================
+   Evidence Photos section
+   ========================================================================= */
+.page-head {
+  display: flex; align-items: flex-start; justify-content: space-between;
+  gap: 14px; margin-bottom: 14px; flex-wrap: wrap;
+}
+.page-head h1 { font-size: 20px; }
+.page-head .section-note { margin-top: 2px; }
+
+.ep-pickers { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+.ep-pick { margin: 0; display: flex; gap: 8px; align-items: center; }
+.ep-pick .select { min-width: 160px; font-size: 11px; padding: 6px 24px 6px 9px; }
+.ep-ondate { font-size: 11px; padding: 6px 9px; }
+
+/* range dropdown styled as a brown button */
+.ep-rangesel {
+  appearance: none;
+  background: var(--brown); color: #fff;
+  border: 1px solid var(--brown);
+  border-radius: var(--radius-sm);
+  padding: 7px 26px 7px 12px;
+  font: inherit; font-size: 11.5px; font-weight: 600;
+  cursor: pointer;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' fill='white' viewBox='0 0 16 16'%3E%3Cpath d='M8 11 3 6h10z'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 8px center;
+}
+.ep-rangesel:hover { background-color: var(--brown-strong); }
+
+/* ---- headline numbers ---- */
+.ep-stats {
+  display: grid; grid-template-columns: repeat(5, 1fr);
+  gap: 10px; margin-bottom: 14px;
+}
+.ep-stat {
+  background: var(--card-bg); border: 1px solid var(--border);
+  border-radius: var(--radius-card); box-shadow: 0 1px 2px rgba(43, 39, 36, 0.04);
+  padding: 11px 12px;
+  display: grid; grid-template-columns: 30px 1fr; column-gap: 9px; align-content: center;
+}
+.ep-stat__ico {
+  grid-row: 1 / span 3; width: 30px; height: 30px; border-radius: 8px;
+  display: grid; place-items: center; font-size: 13px;
+}
+.ep-stat__ico--peach  { background: #f6e2cf; color: #a6631f; }
+.ep-stat__ico--green  { background: #dcecd7; color: #2f7a3d; }
+.ep-stat__ico--blue   { background: #d9e4f1; color: #2b5f9e; }
+.ep-stat__ico--purple { background: #e5ddf0; color: #6a4a9e; }
+.ep-stat__ico--red    { background: #f6dcd9; color: #b23a33; }
+.ep-stat__ico--teal   { background: #d3ebe6; color: #2b7d70; }
+.ep-stat__ico--grey   { background: #e6e3de; color: #6f6862; }
+.ep-stat__value { font-size: 15px; font-weight: 700; color: #1c1a18; line-height: 1.2; white-space: nowrap; }
+.ep-stat__label { font-size: 11px; color: #1c1a18; font-weight: 500; }
+.ep-stat__sub   { font-size: 9.5px; color: var(--text-muted); }
+
+/* ---- layout: main + right rail ---- */
+.ep-grid {
+  display: grid; grid-template-columns: minmax(0, 1fr) 280px;
+  gap: 14px; align-items: start;
+}
+.ep-main { padding: 0; overflow: hidden; }
+
+/* ---- filter bar ---- */
+.ep-filter {
+  display: flex; align-items: center; gap: 9px; flex-wrap: wrap;
+  padding: 12px;
+  border-bottom: 1px solid var(--border-soft);
+}
+.ep-filter__search { position: relative; flex: 1 1 220px; min-width: 180px; }
+.ep-filter__search i {
+  position: absolute; left: 10px; top: 50%; transform: translateY(-50%);
+  font-size: 12px; color: var(--text-muted);
+}
+.ep-filter__search .input { width: 100%; padding-left: 28px; font-size: 11.5px; }
+.ep-filter .select { font-size: 11.5px; }
+
+.ep-empty {
+  padding: 40px 16px; text-align: center;
+  display: flex; flex-direction: column; align-items: center; gap: 8px;
+}
+.ep-empty i { font-size: 24px; color: var(--border); }
+
+/* ---- gallery grid ---- */
+.ep-gallery {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(210px, 1fr));
+  gap: 12px;
+  padding: 14px;
+}
+.ep-card {
+  margin: 0;
+  border: 1px solid var(--border-soft);
+  border-radius: 11px;
+  overflow: hidden;
+  background: var(--card-bg);
+  display: flex; flex-direction: column;
+  transition: border-color .12s ease, box-shadow .12s ease;
+}
+.ep-card:hover { border-color: var(--border); box-shadow: 0 4px 14px -6px rgba(43, 33, 20, 0.18); }
+
+.ep-card__img {
+  position: relative;
+  display: block; width: 100%;
+  aspect-ratio: 4 / 3;
+  border: 0; padding: 0; margin: 0;
+  background: var(--panel-inset);
+  cursor: zoom-in;
+  overflow: hidden;
+}
+.ep-card__img img { width: 100%; height: 100%; object-fit: cover; display: block; transition: transform .3s ease; }
+.ep-card__img:hover img { transform: scale(1.04); }
+.ep-card__zoom {
+  position: absolute; right: 7px; bottom: 7px;
+  width: 24px; height: 24px; border-radius: 6px;
+  display: grid; place-items: center;
+  background: rgba(28, 24, 22, 0.62); color: #fff; font-size: 11px;
+  opacity: 0; transition: opacity .12s ease;
+}
+.ep-card__img:hover .ep-card__zoom { opacity: 1; }
+
+.ep-card__body { padding: 10px 11px 11px; display: flex; flex-direction: column; gap: 6px; }
+.ep-card__row { display: flex; align-items: center; justify-content: space-between; gap: 6px; }
+.ep-card__time { font-size: 10px; color: var(--text-muted); white-space: nowrap; }
+.ep-card__shop {
+  font-size: 12px; color: #1c1a18; line-height: 1.3;
+  overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+}
+
+.ep-card__employee { display: flex; align-items: center; gap: 7px; text-decoration: none; color: inherit; }
+.ep-card__dname {
+  font-size: 11px; font-weight: 600; color: #1c1a18;
+  overflow: hidden; text-overflow: ellipsis; white-space: nowrap; max-width: 130px;
+}
+.ep-card__employee .c-muted { font-size: 9.5px; }
+
+.ep-card__meta {
+  display: flex; align-items: center; justify-content: space-between; gap: 6px;
+  font-size: 10px; color: var(--text-2);
+}
+.ep-card__meta i { color: var(--text-muted); }
+.ep-card__meta span:first-child {
+  overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+}
+
+.ep-card__map {
+  display: flex; align-items: center; justify-content: center; gap: 6px;
+  margin-top: 2px;
+  padding: 7px 10px; border-radius: 8px;
+  background: var(--panel-inset);
+  border: 1px solid var(--border-soft);
+  color: var(--brown);
+  font-size: 11px; font-weight: 600;
+  text-decoration: none;
+  transition: background .12s ease, border-color .12s ease;
+}
+.ep-card__map:hover { background: #efe6d6; border-color: var(--border); }
+.ep-card__map i { font-size: 12px; color: #b23a33; }
+
+.ep-card__actions {
+  display: flex; gap: 5px; margin-top: 6px;
+  padding-top: 8px; border-top: 1px solid var(--border-soft);
+}
+.ep-act {
+  width: 26px; height: 26px; border-radius: 7px;
+  display: grid; place-items: center;
+  border: 1px solid var(--border); color: var(--accent);
+  text-decoration: none; font-size: 12px;
+}
+.ep-act:hover { background: var(--panel-inset); }
+
+/* =========================================================================
+   Single-photo location page (photo.php)
+   ========================================================================= */
+.ep-back {
+  display: inline-flex; align-items: center; gap: 5px;
+  font-size: 11.5px; font-weight: 600; color: var(--accent);
+  text-decoration: none; margin-bottom: 6px;
+}
+.ep-back:hover { text-decoration: underline; }
+
+.ep-photopage {
+  display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1.1fr);
+  gap: 14px; align-items: start;
+}
+
+.ep-photobox { padding: 12px; }
+/* Click-to-zoom trigger for the full-size detail photo - same lightbox as
+   the gallery grid (see evidence-photos.js), but its own rule rather than
+   reusing .ep-card__img: that class is sized/cropped for a small grid
+   thumbnail (fixed 4:3, object-fit: cover), while this is the one large
+   photo on its own page and needs to show the whole image uncropped. */
+.ep-photopage__img {
+  position: relative;
+  display: block; width: 100%;
+  border: 0; padding: 0; margin: 0;
+  background: transparent;
+  cursor: zoom-in;
+}
+.ep-photopage__img img {
+  width: 100%; max-height: 60vh; object-fit: contain;
+  border-radius: 10px; background: var(--panel-inset);
+  display: block;
+}
+.ep-photopage__img .ep-card__zoom {
+  position: absolute; right: 10px; bottom: 10px;
+  opacity: 0; transition: opacity .12s ease;
+}
+.ep-photopage__img:hover .ep-card__zoom { opacity: 1; }
+.ep-photobox figcaption { margin-top: 12px; display: flex; flex-direction: column; gap: 12px; }
+
+.ep-photopage__employee {
+  display: flex; align-items: center; gap: 9px;
+  text-decoration: none; color: inherit;
+  padding-bottom: 12px; border-bottom: 1px solid var(--border-soft);
+}
+.ep-photopage__employee .ep-ava { width: 30px; height: 30px; flex: 0 0 30px; font-size: 12px; }
+.ep-photopage__employee strong { font-size: 12.5px; color: #1c1a18; }
+.ep-photopage__employee .c-muted { font-size: 10.5px; }
+
+/* Each fact gets its own small icon tile (same pattern as the Employee
+   Overview "Today statement" card) so the list reads as a clear set of
+   labeled facts at a glance, not a plain two-column key/value dump. */
+.ep-photopage__facts { margin: 0; display: flex; flex-direction: column; gap: 2px; }
+.ep-photopage__facts > div {
+  display: grid;
+  grid-template-columns: 26px 84px 1fr;
+  align-items: center;
+  gap: 10px;
+  padding: 7px 0;
+  border-bottom: 1px solid var(--border-soft);
+}
+.ep-photopage__facts > div:last-child { border-bottom: 0; }
+.ep-fact__ico {
+  width: 26px; height: 26px;
+  border-radius: 7px;
+  display: grid; place-items: center;
+  font-size: 12px;
+}
+.ep-fact__ico--green  { background: #dcecd7; color: #2f7a3d; }
+.ep-fact__ico--blue   { background: #d9e4f1; color: #2b5f9e; }
+.ep-fact__ico--purple { background: #e5ddf0; color: #6a4a9e; }
+.ep-fact__ico--peach  { background: #f6e2cf; color: #a6631f; }
+.ep-fact__ico--red    { background: #f3dad7; color: #a8433b; }
+.ep-fact__ico--grey   { background: var(--panel-inset); color: var(--text-muted); }
+.ep-photopage__facts dt { font-size: 10.5px; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.03em; }
+.ep-photopage__facts dd { margin: 0; font-size: 12px; color: #1c1a18; }
+
+/* Check-in / Check-out groups - each is its own mini fact-list (Time,
+   Location, Odometer) under a small colored heading, so the two events
+   read as clearly separate blocks rather than one long undifferentiated
+   list of rows. */
+.ep-fact-group { margin-top: 12px; }
+.ep-fact-group__head {
+  display: flex; align-items: center; gap: 6px;
+  margin: 0 0 4px; font-size: 11px; font-weight: 700;
+  text-transform: uppercase; letter-spacing: 0.03em;
+  color: var(--text-muted);
+}
+.ep-fact-group__head--green { color: #2f7a3d; }
+.ep-fact-group__head--red { color: #a8433b; }
+/* the odometer figure is this card's headline number, same treatment as a
+   stat card's bold value - it should read heavier than a plain fact. */
+.ep-fact__strong { font-size: 13.5px; font-weight: 700; color: #1c1a18; }
+
+.ep-mapbox { padding: 0; overflow: hidden; }
+.ep-mapbox .card__head { padding: 13px 15px; margin-bottom: 0; border-bottom: 1px solid var(--border-soft); }
+.ep-mapbox .card__head h2 { display: inline-flex; align-items: center; gap: 7px; }
+.ep-mapbox__open { font-size: 11px; font-weight: 600; color: var(--accent); text-decoration: none; }
+.ep-mapbox__open:hover { text-decoration: underline; }
+
+.ep-map { position: relative; width: 100%; aspect-ratio: 4 / 3; background: var(--panel-inset); }
+/* Real Mapbox map - same box mapbox-route.js's render() fills, same pattern
+   as admin/02-employees/_route_map.php's .day-map__real. */
+.ep-map__real,
+.ep-map__real.mapboxgl-map {
+  position: absolute !important;
+  inset: 0 !important;
+  width: 100% !important;
+  height: 100% !important;
+}
+/* "Expand map" - a labeled brown pill, bottom-left, deliberately NOT styled
+   like a bare icon-only square the way Mapbox's own zoom/compass controls
+   are (top-right) - stacking another plain square control right under
+   those read as "part of the map's own UI" rather than a distinct feature
+   of ours, which is exactly the confusion this button must avoid. A
+   labeled pill in the app's own accent color reads unambiguously as "our
+   button", not a native map control. */
+.ep-map__expand {
+  position: absolute;
+  bottom: 10px; left: 10px;
+  z-index: 2;
+  display: inline-flex; align-items: center; gap: 6px;
+  padding: 7px 12px;
+  border-radius: 999px;
+  border: 1px solid var(--brown);
+  background: var(--brown);
+  color: #fff;
+  font: inherit;
+  font-size: 11.5px;
+  font-weight: 700;
+  cursor: pointer;
+  box-shadow: 0 2px 6px rgba(0,0,0,.18);
+}
+.ep-map__expand i { font-size: 11px; }
+.ep-map__expand:hover { background: var(--brown-strong); }
+.ep-map__foot, .ep-map__none {
+  display: flex; align-items: flex-start; gap: 7px;
+  padding: 12px 15px; margin: 0;
+}
+.ep-map__foot i, .ep-map__none i { margin-top: 1px; flex: 0 0 auto; }
+.ep-map__none { padding: 28px 15px; }
+
+@media (max-width: 900px) {
+  .ep-photopage { grid-template-columns: 1fr; }
+}
+
+/* ---- kind chip ---- */
+.ep-chip {
+  display: inline-flex; align-items: center; gap: 4px;
+  padding: 2px 8px; border-radius: 999px;
+  font-size: 9.5px; font-weight: 600; white-space: nowrap;
+}
+.ep-chip i { font-size: 10px; }
+.ep-chip--blue   { background: #d9e4f1; color: #2b5f9e; }
+.ep-chip--green  { background: #dcecd7; color: #2f7a3d; }
+.ep-chip--red    { background: #f6dcd9; color: #b23a33; }
+.ep-chip--grey   { background: #e6e3de; color: #6f6862; }
+
+/* ---- avatars ---- */
+.ep-ava {
+  width: 24px; height: 24px; border-radius: 50%;
+  display: grid; place-items: center; flex: 0 0 24px;
+  font-size: 10px; font-weight: 700;
+  background: #d9e4f1; color: #2b5f9e;
+  overflow: hidden;
+}
+.ep-ava--photo img { width: 100%; height: 100%; object-fit: cover; }
+.ep-ava--blue   { background: #d9e4f1; color: #2b5f9e; }
+.ep-ava--green  { background: #dcecd7; color: #2f7a3d; }
+.ep-ava--peach  { background: #f6e2cf; color: #a6631f; }
+.ep-ava--purple { background: #e5ddf0; color: #6a4a9e; }
+.ep-ava--red    { background: #f6dcd9; color: #b23a33; }
+
+/* ---- table foot ---- */
+.table-foot {
+  display: flex; align-items: center; justify-content: space-between;
+  gap: 12px; flex-wrap: wrap;
+  padding: 12px; border-top: 1px solid var(--border-soft);
+}
+.page-size { margin: 0; }
+.page-size .select { font-size: 11px; padding: 5px 24px 5px 8px; }
+
+/* ---- right rail ---- */
+.ep-rail { display: flex; flex-direction: column; gap: 14px; }
+.ep-rail .card + .card { margin-top: 0; }
+.ep-rail__btn { width: 100%; justify-content: center; margin-top: 10px; font-size: 11px; }
+
+.ep-breakdown { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 10px; }
+.ep-breakdown__top {
+  display: flex; align-items: center; gap: 6px;
+  font-size: 11px; margin-bottom: 4px;
+}
+.ep-breakdown__label { flex: 1 1 auto; color: var(--text-2); }
+.ep-breakdown__top strong { color: #1c1a18; }
+.ep-breakdown__top .c-muted { font-size: 10px; }
+.ep-dot { width: 8px; height: 8px; border-radius: 50%; flex: 0 0 8px; }
+.ep-dot--blue { background: #2b5f9e; } .ep-dot--green { background: #2f7a3d; }
+.ep-dot--red { background: #b23a33; } .ep-dot--grey { background: #6f6862; }
+.ep-bar { height: 5px; border-radius: 3px; background: var(--panel-inset); overflow: hidden; }
+.ep-bar__fill { display: block; height: 100%; border-radius: 3px; }
+.ep-bar__fill--blue { background: #3d7ac2; } .ep-bar__fill--green { background: #4a9d5b; }
+.ep-bar__fill--red { background: #c85850; } .ep-bar__fill--grey { background: #9a938c; }
+
+.ep-rank {
+  display: grid; grid-template-columns: 16px 24px minmax(0, 1fr) auto;
+  align-items: center; gap: 9px;
+  padding: 8px 0; text-decoration: none; color: inherit;
+  border-bottom: 1px solid var(--border-soft);
+}
+.ep-rank:last-of-type { border-bottom: 0; }
+.ep-rank__n { font-size: 11px; font-weight: 700; color: var(--text-2); }
+.ep-rank .stack strong { font-size: 11.5px; color: #1c1a18; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.ep-rank .stack span { font-size: 10px; }
+.ep-rank__v { font-size: 13px; font-weight: 700; color: #1c1a18; }
+
+/* ---- lightbox ---- */
+.ep-lightbox {
+  position: fixed; inset: 0; z-index: 220;
+  display: flex; align-items: center; justify-content: center;
+  padding: 32px;
+  background: rgba(24, 20, 16, 0.86);
+  opacity: 0; transition: opacity .16s ease;
+}
+.ep-lightbox.is-open { opacity: 1; }
+.ep-lightbox[hidden] { display: none; }
+
+.ep-lightbox__frame {
+  margin: 0; max-width: 900px; max-height: 100%;
+  display: flex; flex-direction: column; gap: 10px;
+  transform: scale(.97); transition: transform .18s cubic-bezier(0.2, 0.7, 0.2, 1);
+}
+.ep-lightbox.is-open .ep-lightbox__frame { transform: scale(1); }
+.ep-lightbox__frame img {
+  max-width: 100%; max-height: 78vh;
+  border-radius: 10px; object-fit: contain;
+  background: #000;
+}
+.ep-lightbox__cap { display: flex; flex-direction: column; gap: 2px; color: #fff; text-align: center; }
+.ep-lightbox__cap strong { font-size: 13px; }
+.ep-lightbox__cap span { font-size: 11px; color: rgba(255, 255, 255, 0.7); }
+
+.ep-lightbox__close {
+  position: absolute; top: 16px; right: 18px;
+  width: 34px; height: 34px; border-radius: 9px;
+  display: grid; place-items: center;
+  border: 0; background: rgba(255, 255, 255, 0.14); color: #fff;
+  font-size: 15px; cursor: pointer;
+}
+.ep-lightbox__close:hover { background: rgba(255, 255, 255, 0.24); }
+
+/* ---- responsive ---- */
+@media (max-width: 1150px) {
+  .ep-grid { grid-template-columns: 1fr; }
+  .ep-stats { grid-template-columns: repeat(3, 1fr); }
+}
+@media (max-width: 620px) {
+  .ep-stats { grid-template-columns: repeat(2, 1fr); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .ep-lightbox, .ep-lightbox__frame, .ep-card__img img { transition: none; }
+}

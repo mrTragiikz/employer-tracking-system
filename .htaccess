@@ -1,0 +1,47 @@
+# Track - root Apache config
+#
+# Works both on local XAMPP (app at /track/) and on the live cPanel domain
+# root (app at /). No RewriteBase - the rules below are written relative so
+# they don't care which one it is.
+#
+# NOTE: no php_flag / php_value here. cPanel runs PHP as CGI/FPM (not
+# mod_php), where those directives throw a 500. PHP settings that matter in
+# production (display_errors off, log_errors on, error_log path) are set from
+# PHP in includes/bootstrap.php instead.
+
+<IfModule mod_rewrite.c>
+    RewriteEngine On
+
+    # Real files and directories are served as-is.
+    RewriteCond %{REQUEST_FILENAME} -f [OR]
+    RewriteCond %{REQUEST_FILENAME} -d
+    RewriteRule ^ - [L]
+
+    # The app uses real directories (admin/, field/, api/), so the only
+    # fallback needed is the bare site root -> index.php.
+    RewriteRule ^$ index.php [L]
+</IfModule>
+
+# --- Security headers (mod_headers) ---
+<IfModule mod_headers.c>
+    Header always set X-Content-Type-Options "nosniff"
+    Header always set X-Frame-Options "SAMEORIGIN"
+    Header always set Referrer-Policy "same-origin"
+    Header always set Permissions-Policy "geolocation=(self), camera=(self)"
+    # HSTS - site is https from day one on the live domain.
+    Header always set Strict-Transport-Security "max-age=15552000"
+</IfModule>
+
+# --- Hide dotfiles and sensitive extensions ---
+<FilesMatch "(^\.|\.(sql|md|log|ini|example|dist|lock|json|zip|bak|tar|gz|7z)$)">
+    <IfModule mod_authz_core.c>
+        Require all denied
+    </IfModule>
+    <IfModule !mod_authz_core.c>
+        Order allow,deny
+        Deny from all
+    </IfModule>
+</FilesMatch>
+
+Options -Indexes
+DirectoryIndex index.php

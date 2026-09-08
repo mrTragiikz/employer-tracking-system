@@ -1,0 +1,136 @@
+/* admin/components/confirm-modal/css/confirm-modal.css
+ * One shared confirm/prompt modal for the whole admin area - same visual
+ * pattern as admin/components/header's logout-modal, generalized. Palette
+ * tokens (--card-bg, --border, --text, --down, --accent, etc.) come from
+ * admin/components/header/css/header.css, loaded first.
+ */
+
+body.cf-modal-open { overflow: hidden; }
+
+.cf-modal {
+  position: fixed;
+  inset: 0;
+  z-index: 300;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+  opacity: 0;
+  transition: opacity 0.16s ease;
+}
+.cf-modal.is-open { opacity: 1; }
+.cf-modal[hidden] { display: none; }
+
+.cf-modal__backdrop {
+  position: absolute;
+  inset: 0;
+  background: rgba(35, 27, 18, 0.42);
+  backdrop-filter: blur(2px);
+  -webkit-backdrop-filter: blur(2px);
+}
+
+.cf-modal__dialog {
+  position: relative;
+  width: 100%;
+  max-width: 380px;
+  background: var(--card-bg);
+  border: 1px solid var(--border);
+  border-radius: 15px;
+  padding: 22px 22px 18px;
+  text-align: center;
+  box-shadow: 0 12px 28px -10px rgba(43, 33, 20, 0.28), 0 40px 60px -30px rgba(43, 33, 20, 0.3);
+  transform: translateY(8px) scale(0.98);
+  transition: transform 0.18s cubic-bezier(0.2, 0.7, 0.2, 1);
+}
+.cf-modal.is-open .cf-modal__dialog { transform: translateY(0) scale(1); }
+
+.cf-modal__icon {
+  width: 42px;
+  height: 42px;
+  margin: 0 auto 12px;
+  display: grid;
+  place-items: center;
+  border-radius: 11px;
+  font-size: 18px;
+  color: var(--down);
+  background: rgba(194, 85, 77, 0.1);
+  border: 1px solid rgba(194, 85, 77, 0.2);
+}
+.cf-modal__icon--primary {
+  color: var(--brown);
+  background: rgba(138, 90, 46, 0.1);
+  border-color: rgba(138, 90, 46, 0.2);
+}
+
+.cf-modal__title {
+  margin: 0 0 5px;
+  font-size: 15px;
+  font-weight: 700;
+  color: var(--text);
+}
+.cf-modal__body {
+  margin: 0 0 18px;
+  font-size: 12px;
+  line-height: 1.5;
+  color: var(--text-2);
+}
+
+.cf-modal__field { margin: -6px 0 18px; text-align: left; }
+.cf-modal__field[hidden] { display: none; }
+.cf-modal__field-label {
+  display: block; margin-bottom: 6px;
+  font-size: 11.5px; font-weight: 600; color: var(--text-2);
+}
+.cf-modal__input {
+  width: 100%; font: inherit; font-size: 14px; color: var(--text);
+  padding: 10px 12px; border-radius: 9px;
+  border: 1px solid var(--border); background: var(--panel-bg, #fff);
+}
+.cf-modal__input:focus {
+  outline: none; border-color: var(--accent);
+  box-shadow: 0 0 0 3px rgba(138, 90, 46, 0.14);
+}
+.cf-modal__field-err {
+  display: block; margin-top: 6px; font-size: 11px; color: var(--down);
+}
+.cf-modal__field-err[hidden] { display: none; }
+
+.cf-modal__actions {
+  display: flex;
+  gap: 9px;
+}
+.cf-modal__btn {
+  flex: 1 1 0;
+  font: inherit;
+  font-size: 12.5px;
+  font-weight: 600;
+  padding: 9px 12px;
+  border-radius: 9px;
+  border: 1px solid transparent;
+  cursor: pointer;
+  transition: background 0.14s ease, border-color 0.14s ease, filter 0.14s ease;
+}
+.cf-modal__btn--ghost {
+  background: var(--card-bg);
+  border-color: var(--border);
+  color: var(--text-2);
+}
+.cf-modal__btn--ghost:hover { background: var(--panel-inset); color: var(--text); }
+.cf-modal__btn--danger {
+  background: var(--down);
+  color: #fff;
+}
+.cf-modal__btn--danger:hover { filter: brightness(1.06); }
+.cf-modal__btn--danger:disabled { opacity: 0.7; cursor: progress; }
+.cf-modal__btn--primary {
+  background: var(--brown);
+  color: #fff;
+}
+.cf-modal__btn--primary:hover { filter: brightness(1.1); }
+.cf-modal__btn--primary:disabled { opacity: 0.7; cursor: progress; }
+.cf-modal__btn:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+
+@media (prefers-reduced-motion: reduce) {
+  .cf-modal,
+  .cf-modal__dialog { transition: none; }
+}

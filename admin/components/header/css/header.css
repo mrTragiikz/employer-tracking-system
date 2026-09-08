@@ -1,0 +1,297 @@
+/* admin/components/header/css/header.css
+ *
+ * The header is the FIRST component header.php loads, so this file also carries
+ * the admin palette tokens, the <body> base, and the .admin-shell / .admin-content
+ * frame that the sidebar and every page sit inside. PC only - no mobile breakpoints.
+ *
+ * There is no shared admin stylesheet by design: each component and each section
+ * owns its own CSS. Palette values are duplicated where needed rather than
+ * centralised.
+ */
+
+/* ============================ palette + base ============================ */
+:root {
+  --bg: #fbf9f5; /* creamy white - the single ground: content, header, sidebar */
+  --sidebar-bg: #fbf9f5; /* same creamy white; a hairline border sets it apart */
+  --header-bg: #fbf9f5;
+  --card-bg: #ffffff; /* cards stay pure white so they lift off the ground */
+  --panel-inset: #f5f1e9; /* subtle tinted wells (quick-action tiles, table hover) */
+
+  --brown: #6b4423;
+  --brown-strong: #5a3819;
+  --accent: #8a5a2e;
+  --accent-soft: #b08356;
+
+  --text: #2b2724;
+  --text-2: #6f6862;
+  --text-muted: #9a938c;
+
+  --border: #e8e0d4;
+  --border-soft: #efe9de;
+
+  --up: #4a9d5b;
+  --down: #c2554d;
+  --live: #3fae5a;
+
+  --radius-card: 13px;
+  --radius-pill: 9px;
+  --radius-sm: 7px;
+  --shadow-card: 0 1px 2px rgba(43, 39, 36, 0.04), 0 3px 12px rgba(43, 39, 36, 0.05);
+
+  --sidebar-w: 212px;
+  --sidebar-w-min: 62px; /* icon-only rail when collapsed */
+  --header-h: 68px;
+  --content-max: 1360px;
+}
+
+* { box-sizing: border-box; }
+html, body { height: 100%; }
+
+body.admin {
+  margin: 0;
+  min-width: 1024px; /* desktop-only: never reflow below this */
+  font-family: "Inter", system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  font-size: 13px;
+  line-height: 1.45;
+  color: var(--text);
+  background: var(--bg);
+  -webkit-font-smoothing: antialiased;
+}
+a { color: inherit; text-decoration: none; }
+h1 { font-size: 21px; font-weight: 700; margin: 0; letter-spacing: -0.01em; }
+h2 { font-size: 14.5px; font-weight: 600; margin: 0; }
+h3 { font-size: 13px; font-weight: 600; margin: 0; }
+
+/* ============================ shell frame ============================ */
+.admin-shell {
+  display: flex;
+  align-items: stretch;
+  min-height: 100vh;
+}
+.admin-content {
+  flex: 1 1 auto;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+/* ============================ top bar ============================ */
+.topbar {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  height: var(--header-h);
+  padding: 0 28px;
+  background: var(--header-bg);
+  border-bottom: 1px solid var(--border-soft);
+  position: sticky;
+  top: 0;
+  z-index: 20;
+}
+
+.topbar__collapse {
+  background: transparent;
+  border: 0;
+  color: var(--text-2);
+  cursor: pointer;
+  padding: 5px;
+  display: grid;
+  place-items: center;
+  border-radius: 7px;
+}
+.topbar__collapse:hover { background: rgba(43, 39, 36, 0.05); }
+
+.topbar__search {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  width: 360px;
+  max-width: 34vw;
+  margin: 0 auto 0 16px;
+  padding: 8px 15px;
+  background: var(--card-bg);
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  color: var(--text-muted);
+}
+.topbar__search input {
+  flex: 1 1 auto;
+  border: 0;
+  outline: 0;
+  background: transparent;
+  font: inherit;
+  color: var(--text);
+}
+.topbar__search input::placeholder { color: var(--text-muted); }
+
+.topbar__right {
+  margin-left: auto;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.topbar__icon {
+  position: relative;
+  width: 34px;
+  height: 34px;
+  display: grid;
+  place-items: center;
+  border: 0;
+  border-radius: 50%;
+  background: transparent;
+  color: var(--text-2);
+  cursor: pointer;
+}
+.topbar__icon:hover { background: rgba(43, 39, 36, 0.05); }
+.topbar__icon svg { width: 17px; height: 17px; }
+
+.topbar__badge {
+  position: absolute;
+  top: 2px;
+  right: 2px;
+  min-width: 15px;
+  height: 15px;
+  padding: 0 3px;
+  border-radius: 999px;
+  background: var(--brown);
+  color: #fff;
+  font-size: 9.5px;
+  font-weight: 700;
+  line-height: 15px;
+  text-align: center;
+}
+
+.topbar__user {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  padding-left: 12px;
+  border-left: 1px solid var(--border);
+}
+.topbar__avatar {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background: var(--brown);
+  color: #fff;
+  display: grid;
+  place-items: center;
+  font-weight: 700;
+  font-size: 13px;
+}
+.topbar__user-text { display: flex; flex-direction: column; line-height: 1.2; }
+.topbar__user-text strong { font-size: 12.5px; font-weight: 600; color: var(--text); }
+.topbar__user-text small { font-size: 11px; color: var(--text-muted); }
+
+.topbar__logout { margin: 0; }
+.topbar__logout button {
+  border: 0;
+  background: transparent;
+  color: var(--text-muted);
+  cursor: pointer;
+  padding: 5px;
+  border-radius: 7px;
+  display: grid;
+  place-items: center;
+}
+.topbar__logout button:hover { background: rgba(43, 39, 36, 0.05); color: var(--down); }
+
+/* ============================ logout modal ============================= */
+body.logout-modal-open { overflow: hidden; }
+
+.logout-modal {
+  position: fixed;
+  inset: 0;
+  z-index: 200;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+  opacity: 0;
+  transition: opacity 0.16s ease;
+}
+.logout-modal.is-open { opacity: 1; }
+.logout-modal[hidden] { display: none; }
+
+.logout-modal__backdrop {
+  position: absolute;
+  inset: 0;
+  background: rgba(35, 27, 18, 0.42);
+  backdrop-filter: blur(2px);
+  -webkit-backdrop-filter: blur(2px);
+}
+
+.logout-modal__dialog {
+  position: relative;
+  width: 100%;
+  max-width: 360px;
+  background: var(--card-bg);
+  border: 1px solid var(--border);
+  border-radius: 15px;
+  padding: 22px 22px 18px;
+  text-align: center;
+  box-shadow: 0 12px 28px -10px rgba(43, 33, 20, 0.28), 0 40px 60px -30px rgba(43, 33, 20, 0.3);
+  transform: translateY(8px) scale(0.98);
+  transition: transform 0.18s cubic-bezier(0.2, 0.7, 0.2, 1);
+}
+.logout-modal.is-open .logout-modal__dialog { transform: translateY(0) scale(1); }
+
+.logout-modal__icon {
+  width: 42px;
+  height: 42px;
+  margin: 0 auto 12px;
+  display: grid;
+  place-items: center;
+  border-radius: 11px;
+  color: var(--down);
+  background: rgba(194, 85, 77, 0.1);
+  border: 1px solid rgba(194, 85, 77, 0.2);
+}
+
+.logout-modal__title {
+  margin: 0 0 5px;
+  font-size: 15px;
+  font-weight: 700;
+  color: var(--text);
+}
+.logout-modal__body {
+  margin: 0 0 18px;
+  font-size: 12px;
+  line-height: 1.5;
+  color: var(--text-2);
+}
+
+.logout-modal__actions {
+  display: flex;
+  gap: 9px;
+}
+.logout-modal__btn {
+  flex: 1 1 0;
+  font: inherit;
+  font-size: 12.5px;
+  font-weight: 600;
+  padding: 9px 12px;
+  border-radius: 9px;
+  border: 1px solid transparent;
+  cursor: pointer;
+  transition: background 0.14s ease, border-color 0.14s ease, filter 0.14s ease;
+}
+.logout-modal__btn--ghost {
+  background: var(--card-bg);
+  border-color: var(--border);
+  color: var(--text-2);
+}
+.logout-modal__btn--ghost:hover { background: var(--panel-inset); color: var(--text); }
+.logout-modal__btn--danger {
+  background: var(--down);
+  color: #fff;
+}
+.logout-modal__btn--danger:hover { filter: brightness(1.06); }
+.logout-modal__btn--danger:disabled { opacity: 0.7; cursor: progress; }
+.logout-modal__btn:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+
+@media (prefers-reduced-motion: reduce) {
+  .logout-modal,
+  .logout-modal__dialog { transition: none; }
+}

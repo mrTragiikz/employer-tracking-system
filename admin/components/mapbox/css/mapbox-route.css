@@ -1,0 +1,205 @@
+/* admin/components/mapbox/css/mapbox-route.css - shared route-map styling. */
+
+/* Base sizing only - height is deliberately NOT set here. Each page that
+   uses this class controls its own height/positioning: the dashboard gives
+   it a fixed height directly, while _route_map.php (Employee Day Detail,
+   Overview, Routes & Map) layers .day-map__real's "position:absolute;
+   inset:0" on top so the map fills its aspect-ratio'd parent box exactly -
+   a height set here would win over that and leave the parent box taller
+   than the map, showing blank space underneath. */
+.mb-route-map {
+  width: 100%;
+  border-radius: 10px;
+  overflow: hidden;
+}
+
+/* Classic teardrop map-pin shape: a circle sitting on a pointed tip. The TIP
+   is the exact GPS point, not the shape's visual center - the marker is
+   created with { anchor: 'bottom' } in JS so Mapbox positions this element
+   with its bottom edge (the tip) on the coordinate, matching how every
+   familiar map pin (Google Maps etc.) indicates a precise location. */
+.mb-route-pin {
+  width: 21px;
+  height: 27px;
+  cursor: pointer;
+  transform-origin: bottom center;
+  transition: transform 0.12s ease;
+}
+.mb-route-pin:hover { transform: scale(1.1); }
+
+.mb-route-pin__head {
+  width: 20px;
+  height: 20px;
+  border-radius: 50% 50% 50% 0;
+  transform: rotate(45deg);
+  position: absolute;
+  top: 0;
+  left: 1px;
+  border: 2px solid #fff;
+  box-shadow: 0 1px 2px rgba(20, 20, 20, 0.3), 0 0 0 1px rgba(20, 20, 20, 0.08);
+}
+.mb-route-pin__label {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 21px;
+  height: 20px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #fff;
+  font-weight: 700;
+  font-size: 9.5px;
+}
+.mb-route-pin__shadow {
+  position: absolute;
+  bottom: -1px;
+  left: 50%;
+  width: 9px;
+  height: 4px;
+  background: rgba(20, 20, 20, 0.25);
+  border-radius: 50%;
+  transform: translateX(-50%);
+  filter: blur(1px);
+}
+
+/* Live team map: each pin is a person, not a journey stage - one consistent
+   brand color rather than the route pins' green/blue/red progression. */
+.mb-team-pin .mb-route-pin__head { background: #6b4423; }
+
+.mapboxgl-popup-content {
+  font-family: inherit;
+  font-size: 12.5px;
+  padding: 12px 14px;
+  border-radius: 14px;
+  box-shadow: 0 6px 20px rgba(20, 20, 20, 0.18);
+}
+.mapboxgl-popup-tip { display: none; }
+.mapboxgl-ctrl-group { border-radius: 8px !important; overflow: hidden; box-shadow: 0 1px 6px rgba(20,20,20,0.18) !important; }
+
+/* The lat/lng shown in a pin's popup, styled as a clear pill button (not
+   plain underlined text) - clicking it opens the zoomed-in satellite
+   location modal (see openLocationModal() in mapbox-route.js). */
+.mb-popup-coords {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  margin-top: 6px;
+  padding: 3px 9px;
+  border: 1px solid #d8e4f2;
+  border-radius: 999px;
+  background: #eef4fc;
+  color: #2a5a9c;
+  font-size: 10px;
+  font-weight: 600;
+  font-family: inherit;
+  line-height: 1.5;
+  cursor: pointer;
+  transition: background 0.12s ease, border-color 0.12s ease;
+}
+.mb-popup-coords:hover { background: #dfebfa; border-color: #b9d2ec; }
+.mb-popup-coords svg { flex: 0 0 auto; width: 10px; height: 10px; }
+
+/* ---- "exact location" modal: a single point, zoomed in, on real satellite
+   imagery - opened from a popup's coordinate button. A real, roomy map
+   view - not a tiny confirmation thumbnail. ---- */
+.mb-loc-modal {
+  position: fixed;
+  inset: 0;
+  background: rgba(20, 18, 15, 0.6);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 2000;
+  padding: 28px;
+}
+.mb-loc-modal__dialog {
+  background: #fff;
+  border-radius: 18px;
+  overflow: hidden;
+  width: min(880px, 100%);
+  box-shadow: 0 24px 64px rgba(0, 0, 0, 0.45);
+  display: flex;
+  flex-direction: column;
+  max-height: calc(100vh - 56px);
+}
+.mb-loc-modal__head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 16px 12px 16px 22px;
+  border-bottom: 1px solid var(--border, #ece6de);
+  flex: 0 0 auto;
+}
+.mb-loc-modal__title {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  font-size: 16px;
+  font-weight: 700;
+  color: var(--text-2, #3a352f);
+}
+.mb-loc-modal__title svg { color: #dc4b4b; flex: 0 0 auto; width: 19px; height: 19px; }
+
+/* A visible bordered frame around the map itself, distinct from the dialog's
+   own edge - reads as "the map is contained in its own box", not just a
+   photo bleeding to the dialog's corners. */
+.mb-loc-modal__frame {
+  margin: 16px 22px 0;
+  border: 1px solid var(--border, #ece6de);
+  border-radius: 12px;
+  overflow: hidden;
+  flex: 1 1 auto;
+  min-height: 0;
+}
+.mb-loc-modal__map { width: 100%; height: min(560px, 60vh); }
+
+/* Route-inspect modal (opened from a card's "Expand" button, not a single
+   point's coordinate button) - a whole route benefits from more room than
+   the single-point zoom view, so it gets a wider dialog and a taller frame. */
+.mb-loc-modal__dialog--route { width: min(1080px, 100%); }
+.mb-loc-modal__frame--route .mb-loc-modal__map { height: min(680px, 72vh); }
+
+.mb-loc-modal__foot {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 14px 22px;
+  flex: 0 0 auto;
+}
+.mb-loc-modal__coords {
+  font-size: 12.5px;
+  color: var(--text-muted, #7a746c);
+  letter-spacing: 0.3px;
+}
+.mb-loc-modal__close {
+  width: 34px;
+  height: 34px;
+  border-radius: 50%;
+  border: 0;
+  background: none;
+  font-size: 20px;
+  line-height: 1;
+  cursor: pointer;
+  color: #8a847a;
+  flex: 0 0 auto;
+}
+.mb-loc-modal__close:hover { background: #f4f1ec; color: #4a4844; }
+
+/* The real "close this" action, at the bottom - the X up top is just a
+   quick-dismiss shortcut, this is the clear, obvious way to leave. */
+.mb-loc-modal__close-btn {
+  padding: 9px 20px;
+  border: 1px solid var(--border, #ece6de);
+  border-radius: 10px;
+  background: #f4f1ec;
+  color: var(--text-2, #3a352f);
+  font-size: 12.5px;
+  font-weight: 600;
+  font-family: inherit;
+  cursor: pointer;
+  transition: background 0.12s ease;
+}
+.mb-loc-modal__close-btn:hover { background: #ece6de; }

@@ -1,0 +1,37 @@
+# Uploads are data, never code. Block execution of anything here.
+
+# Apache 2.4+
+<IfModule mod_authz_core.c>
+    <FilesMatch "\.(php|php3|php4|php5|php7|phtml|pht|phar|cgi|pl|py|sh|htaccess)$">
+        Require all denied
+    </FilesMatch>
+</IfModule>
+
+# Apache 2.2
+<IfModule !mod_authz_core.c>
+    <FilesMatch "\.(php|php3|php4|php5|php7|phtml|pht|phar|cgi|pl|py|sh|htaccess)$">
+        Order allow,deny
+        Deny from all
+    </FilesMatch>
+</IfModule>
+
+# Never run PHP even if a handler is set elsewhere.
+<IfModule mod_php.c>
+    php_flag engine off
+</IfModule>
+<IfModule mod_php7.c>
+    php_flag engine off
+</IfModule>
+<IfModule mod_php8.c>
+    php_flag engine off
+</IfModule>
+RemoveHandler .php .phtml .php3 .php4 .php5 .php7
+RemoveType .php .phtml .php3 .php4 .php5 .php7
+
+# Force downloads to be treated as plain data.
+<IfModule mod_headers.c>
+    Header set X-Content-Type-Options "nosniff"
+    Header set Content-Disposition "inline"
+</IfModule>
+
+Options -ExecCGI -Indexes

@@ -1,0 +1,503 @@
+/* admin/01-dashboard/css/dashboard.css
+ *
+ * Everything the dashboard page renders that isn't the shared chrome
+ * (header/sidebar/footer components carry their own CSS). Palette tokens
+ * come from header.css, which the page loads first.
+ *
+ * No shared admin stylesheet by design - .card / .table / .badge here are the
+ * dashboard's own copies; other sections carry theirs.
+ *
+ * Sized to sit on one screen with the compact chrome - no oversized type,
+ * tight but breathing gaps.
+ */
+
+/* ---- dashboard: plain white ground (set via $bodyClass on index.php) ---- */
+body.admin.dash-bg { background: #ffffff; }
+/* on a white ground the white cards need a firmer edge to stay separated */
+body.admin.dash-bg .card {
+  border-color: var(--border);
+  box-shadow: 0 1px 2px rgba(43, 39, 36, 0.04);
+}
+body.admin.dash-bg .stat-card { border-color: var(--border); }
+
+/* ---- card shell ---- */
+.card {
+  background: var(--card-bg);
+  border: 1px solid var(--border-soft);
+  border-radius: var(--radius-card);
+  box-shadow: var(--shadow-card);
+  padding: 15px;
+}
+.card__head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 12px;
+}
+.card__head h2 { font-size: 13.5px; }
+.card__link { font-size: 11.5px; font-weight: 600; color: var(--accent); }
+
+/* ---- flash ---- */
+.dash-flash {
+  display: flex; align-items: center; gap: 8px;
+  border-radius: 9px; padding: 9px 13px;
+  font-size: 12px; font-weight: 500;
+  margin-bottom: 14px;
+}
+.dash-flash--err { background: #f3dad7; color: #a8433b; }
+.dash-flash--ok  { background: #dcecd7; color: #2f7a3d; }
+
+/* ---- greeting row ---- */
+.dash-greeting {
+  margin: 2px 0 14px;
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 14px;
+}
+.dash-greeting__sub { color: var(--text-2); font-size: 12px; margin-top: 3px; }
+
+.date-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  background: var(--card-bg);
+  border: 1px solid var(--border);
+  border-radius: 9px;
+  padding: 7px 12px;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--text);
+  box-shadow: var(--shadow-card);
+  white-space: nowrap;
+}
+.date-pill i { font-size: 13px; color: var(--text-muted); }
+
+/* ---- stat cards ---- */
+.stat-row {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 14px;
+  margin-bottom: 14px;
+}
+.stat-row--3 { grid-template-columns: repeat(3, 1fr); }
+.stat-card {
+  background: var(--card-bg);
+  border: 1px solid var(--border-soft);
+  border-radius: var(--radius-card);
+  box-shadow: var(--shadow-card);
+  padding: 14px;
+  display: grid;
+  grid-template-columns: 40px 1fr;
+  column-gap: 12px;
+  row-gap: 2px;
+  align-content: center;
+  transition: background-color 0.3s ease;
+}
+/* brief highlight when the live poll updates a card's value */
+.stat-card.is-new { background: #fff8ea; }
+.stat-card__tile {
+  grid-row: 1 / span 3;
+  align-self: start;
+  width: 40px;
+  height: 40px;
+  border-radius: 11px;
+  display: grid;
+  place-items: center;
+  color: var(--accent);
+}
+.stat-card__tile i { font-size: 18px; line-height: 1; }
+.stat-card__tile--peach  { background: #f6e2cf; color: #a6631f; }
+.stat-card__tile--green  { background: #dcecd7; color: #2f7a3d; }
+.stat-card__tile--blue   { background: #d9e4f1; color: #2b5f9e; }
+.stat-card__tile--purple { background: #e5ddf0; color: #6a4a9e; }
+
+.stat-card__label { color: var(--text-2); font-size: 12px; }
+.stat-card__value {
+  font-size: 19px;
+  font-weight: 700;
+  color: var(--text);
+  display: flex;
+  align-items: baseline;
+  gap: 6px;
+  line-height: 1.25;
+}
+.stat-card__trend { font-size: 11px; font-weight: 600; }
+.stat-card__trend--up { color: var(--up); }
+.stat-card__trend--down { color: var(--down); }
+.stat-card__foot { color: var(--text-muted); font-size: 10.5px; }
+
+/* ---- row 2: chart | route | activities ----
+   stretch so all three cards share the tallest one's height (matches the mockup) */
+.dash-row-2 {
+  display: grid;
+  grid-template-columns: 1.75fr 1fr;
+  gap: 14px;
+  margin-bottom: 14px;
+  align-items: stretch;
+}
+.dash-row-2 > .card { display: flex; flex-direction: column; }
+.dash-row-2 .chart-box,
+.dash-row-2 .map-box { flex: 1 1 auto; }
+/* ---- row 3: top Employees | latest visits | quick actions ---- */
+.dash-row-3 {
+  display: grid;
+  grid-template-columns: 1fr 1.5fr 1.05fr;
+  gap: 14px;
+  align-items: start;
+}
+
+.chart-box {
+  min-height: 220px;
+  border-radius: 10px;
+  background: linear-gradient(180deg, rgba(138,90,46,0.10), rgba(138,90,46,0) 70%);
+  position: relative;
+  overflow: hidden;
+}
+.chart-box__msg {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  color: var(--text-muted);
+  font-size: 11px;
+  text-align: center;
+  padding: 12px;
+}
+/* Once TrackMapboxRoute.renderTeam() swaps this div to a real map, the
+   gradient placeholder background/padding must get out of the way - a
+   Mapbox canvas needs to fill its box edge to edge. */
+.chart-box.mb-route-map[data-team-points] { background: none; }
+
+.map-box {
+  min-height: 220px;
+  border-radius: 10px;
+  background: #e9eef0 repeating-linear-gradient(45deg, rgba(0,0,0,0.02) 0 12px, transparent 12px 24px);
+  display: grid;
+  place-items: center;
+  color: var(--text-muted);
+  font-size: 11px;
+}
+
+/* ---- Today's Route: Employee picker + route diagram ---- */
+.route-picker { margin: 0; }
+.route-picker .select-pill { max-width: 190px; }
+
+.route-empty {
+  min-height: 220px;
+  border-radius: 10px;
+  background: var(--panel-inset);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  text-align: center;
+  padding: 20px;
+  color: var(--text-muted);
+}
+.route-empty i { font-size: 24px; color: var(--accent-soft); }
+.route-empty p { margin: 0; font-size: 12px; }
+.route-empty strong { color: var(--text-2); }
+
+.route-map {
+  position: relative;
+  border-radius: 10px;
+  overflow: hidden;
+  background: #e9eef0 repeating-linear-gradient(45deg, rgba(0,0,0,0.02) 0 12px, transparent 12px 24px);
+  padding: 12px;
+  max-height: 260px;
+  overflow-y: auto;
+}
+/* Once mapbox-route.js swaps this div to a real map, it needs the padding/
+   scroll behavior above gone - a Mapbox canvas must fill its box edge to
+   edge with no internal scrollbar of its own. */
+.route-map.mb-route-map[data-map-token]:not([data-map-token="REPLACE-WITH-YOUR-PK-TOKEN"]):not([data-map-token=""]) {
+  padding: 0;
+  overflow: hidden;
+  max-height: none;
+  height: 260px;
+}
+.route-map__bg {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  color: var(--text-muted);
+  font-size: 11px;
+  pointer-events: none;
+}
+
+/* Positioning shell for the expand button - top-left, clear of Mapbox's own
+   zoom controls (top-right, added by mapbox-route.js's NavigationControl). */
+.route-map-wrap { position: relative; }
+.route-map__expand {
+  position: absolute;
+  top: 10px;
+  left: 10px;
+  z-index: 5;
+  width: 30px;
+  height: 30px;
+  display: grid;
+  place-items: center;
+  border-radius: 8px;
+  border: 1px solid var(--border);
+  background: rgba(255, 255, 255, 0.92);
+  color: var(--text-2);
+  font-size: 13px;
+  cursor: pointer;
+  box-shadow: 0 1px 4px rgba(43, 39, 36, 0.15);
+}
+.route-map__expand:hover { background: #fff; color: var(--accent); }
+
+.route-line {
+  position: relative;
+  list-style: none;
+  margin: 0;
+  padding: 0 0 0 6px;
+  z-index: 1;
+}
+.route-pt {
+  position: relative;
+  display: flex;
+  gap: 10px;
+  padding: 6px 0;
+}
+/* the connecting line */
+.route-pt::before {
+  content: "";
+  position: absolute;
+  left: 12px;
+  top: 26px;
+  bottom: -6px;
+  width: 2px;
+  background: var(--accent-soft);
+}
+.route-pt:last-child::before { display: none; }
+
+.route-pt__dot {
+  position: relative;
+  z-index: 1;
+  flex: 0 0 26px;
+  width: 26px;
+  height: 26px;
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+  font-size: 11px;
+  font-weight: 700;
+  color: #fff;
+  background: var(--accent);
+  box-shadow: 0 0 0 3px var(--card-bg);
+}
+.route-pt--checkin  .route-pt__dot { background: #3d7a49; }
+.route-pt--checkout .route-pt__dot { background: #a8433b; }
+
+.route-pt__body {
+  background: var(--card-bg);
+  border: 1px solid var(--border-soft);
+  border-radius: 8px;
+  padding: 6px 10px;
+  flex: 1 1 auto;
+  min-width: 0;
+}
+.route-pt__body strong { font-size: 12px; display: block; }
+.route-pt__meta {
+  font-size: 10px;
+  color: var(--text-muted);
+  display: block;
+  margin-top: 1px;
+}
+
+.route-foot {
+  margin: 8px 0 0;
+  font-size: 11px;
+  color: var(--text-muted);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.pill-live {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--live);
+}
+.pill-live::before {
+  content: "";
+  width: 6px; height: 6px;
+  border-radius: 50%;
+  background: var(--live);
+}
+
+.select-pill {
+  appearance: none;
+  background: var(--card-bg);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 6px 26px 6px 11px;
+  font: inherit;
+  font-size: 11.5px;
+  font-weight: 600;
+  color: var(--text-2);
+  cursor: pointer;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%239a938c' stroke-width='3'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 10px center;
+}
+
+/* ---- recent activities ---- */
+.activity {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 0;
+  border-bottom: 1px solid var(--border-soft);
+}
+.activity:first-of-type { padding-top: 0; }
+.activity:last-child { border-bottom: 0; padding-bottom: 0; }
+.activity__icon {
+  flex: 0 0 30px;
+  width: 30px; height: 30px;
+  border-radius: 9px;
+  display: grid;
+  place-items: center;
+  box-shadow: inset 0 0 0 1px rgba(0, 0, 0, 0.04);
+}
+.activity__icon i { font-size: 13.5px; line-height: 1; }
+.activity__icon--green  { background: #dcecd7; color: #237a3c; }
+.activity__icon--blue   { background: #d9e4f1; color: #2158a3; }
+.activity__icon--red    { background: #f6dcd9; color: #b23a33; }
+.activity__icon--purple { background: #e6ddf3; color: #6a3fb0; }
+.activity__icon--peach  { background: #f7e3d2; color: #b0631f; }
+.activity__body { flex: 1 1 auto; min-width: 0; font-size: 12px; line-height: 1.35; color: #211d19; }
+.activity__who { font-weight: 800; color: #171310; }
+.activity__what { font-weight: 600; }
+.activity__time {
+  flex: 0 0 auto;
+  display: inline-block;
+  background: var(--panel-inset);
+  color: var(--text-2);
+  font-size: 10.5px;
+  font-weight: 700;
+  white-space: nowrap;
+  padding: 4px 9px;
+  border-radius: 999px;
+  border: 1px solid var(--border-soft);
+}
+.activity.is-new { animation: activity-pop 1.4s ease; }
+@keyframes activity-pop {
+  0%   { background: #fff4da; }
+  100% { background: transparent; }
+}
+
+/* ---- ranked Employees ---- */
+.rank {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 0;
+  border-bottom: 1px solid var(--border-soft);
+}
+.rank:first-of-type { padding-top: 0; }
+.rank:last-child { border-bottom: 0; padding-bottom: 0; }
+.rank__n { width: 14px; color: var(--text-2); font-size: 11.5px; font-weight: 700; }
+.rank__avatar {
+  width: 26px; height: 26px; border-radius: 50%;
+  display: grid; place-items: center;
+  font-size: 11px; font-weight: 700;
+  background: var(--panel-inset);
+}
+.rank__avatar--peach  { background: #f6e2cf; color: #a6631f; }
+.rank__avatar--green  { background: #dcecd7; color: #2f7a3d; }
+.rank__avatar--blue   { background: #d9e4f1; color: #2b5f9e; }
+.rank__avatar--purple { background: #e5ddf0; color: #6a4a9e; }
+.rank__avatar--red    { background: #f6dcd9; color: #b23a33; }
+.rank__name { flex: 1 1 auto; font-size: 12px; font-weight: 700; color: #1c1a18; }
+.rank__meta { color: var(--text-2); font-size: 11px; font-weight: 500; }
+
+/* ---- quick actions ---- */
+.qa-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 10px;
+}
+.qa {
+  background: var(--panel-inset);
+  border: 1px solid var(--border-soft);
+  border-radius: 10px;
+  padding: 11px 6px;
+  display: grid;
+  place-items: center;
+  gap: 6px;
+  text-align: center;
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--text);
+  cursor: pointer;
+  transition: background 0.15s, border-color 0.15s;
+}
+.qa:hover { background: #f1eade; border-color: var(--border); }
+.qa__icon {
+  width: 34px; height: 34px;
+  border-radius: 9px;
+  display: grid; place-items: center;
+}
+.qa__icon i { font-size: 16px; line-height: 1; }
+.qa__icon--peach  { background: #f6e2cf; color: #a6631f; }
+.qa__icon--green  { background: #dcecd7; color: #2f7a3d; }
+.qa__icon--blue   { background: #d9e4f1; color: #2b5f9e; }
+.qa__icon--purple { background: #e5ddf0; color: #6a4a9e; }
+.qa__icon--red    { background: #f6dcd9; color: #b23a33; }
+
+/* ---- table (Latest Visits) ---- */
+.table { width: 100%; border-collapse: collapse; }
+.table th {
+  text-align: left;
+  font-size: 9.5px;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+  padding: 6px 8px;
+  border-bottom: 1px solid var(--border);
+}
+.table th .th-note { text-transform: none; letter-spacing: 0; font-weight: 500; }
+.table td {
+  padding: 7px 8px;
+  font-size: 11.5px;
+  color: #1c1a18;
+  border-bottom: 1px solid var(--border-soft);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 130px;
+}
+.table td:first-child { font-weight: 600; }
+.table tr:last-child td { border-bottom: 0; }
+
+/* Distance column: a right-aligned pill badge reads as one clear figure at
+   a glance, and distinguishes a genuinely tiny hop (shown in metres, muted
+   tone) from real cross-town travel (km, accent tone) - rather than both
+   looking like a bare "0.0" once a hop under 1 km got rounded away. */
+.table th.lv-km, .table td.lv-km { text-align: right; }
+.lv-km__badge {
+  display: inline-block;
+  padding: 3px 9px;
+  border-radius: 999px;
+  font-size: 11px;
+  font-weight: 700;
+  background: var(--panel-inset);
+  color: var(--accent);
+  white-space: nowrap;
+}
+.lv-km__badge--near { color: var(--text-2); }
+
+/* ---- badges ---- */
+.badge { display: inline-block; padding: 2px 7px; border-radius: 999px; font-size: 10px; font-weight: 600; }
+.badge--pending { background: #f6e6cf; color: #8a5a2e; }
+.badge--approved { background: #dcecd7; color: #3d7a49; }
+.badge--rejected { background: #f3dad7; color: #a8433b; }

@@ -1,0 +1,168 @@
+/* admin/components/sidebar/css/sidebar.css
+ * The fixed left rail, plus .admin-main (the page content column that sits
+ * beside it). PC only. Palette tokens come from header.css, which loads first.
+ */
+
+.admin-main {
+  flex: 1 1 auto;
+  padding: 6px 28px 24px;
+  max-width: var(--content-max);
+  width: 100%;
+}
+
+.sidebar {
+  flex: 0 0 var(--sidebar-w);
+  width: var(--sidebar-w);
+  background: var(--sidebar-bg);
+  border-right: 1px solid var(--border-soft);   /* separates it from the same-colour content */
+  display: flex;
+  flex-direction: column;
+  padding: 18px 12px 16px;
+  position: sticky;
+  top: 0;
+  height: 100vh;
+  overflow-y: auto;
+}
+
+/* --- logo --- */
+.sidebar__logo {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 0 6px 18px;
+}
+.sidebar__logo-mark {
+  color: var(--brown);
+  display: grid;
+  place-items: center;
+  font-size: 22px;
+  line-height: 1;
+}
+.sidebar__logo-text strong {
+  display: block;
+  font-size: 17px;
+  font-weight: 700;
+  letter-spacing: -0.01em;
+  color: var(--text);
+}
+.sidebar__logo-text small {
+  display: block;
+  font-size: 8px;
+  letter-spacing: 0.12em;
+  color: var(--text-muted);
+  margin-top: 1px;
+}
+
+/* --- nav --- */
+.sidebar__nav { flex: 1 1 auto; }
+.sidebar__nav ul { list-style: none; margin: 0; padding: 0; }
+.sidebar__nav li { margin: 1px 0; }
+
+.sidebar__link {
+  display: flex;
+  align-items: center;
+  gap: 11px;
+  padding: 8px 11px;
+  border-radius: var(--radius-pill);
+  color: var(--text-2);
+  font-size: 12.5px;
+  font-weight: 500;
+  transition: background 0.14s, color 0.14s;
+}
+.sidebar__link:hover {
+  background: rgba(107, 68, 35, 0.07);
+  color: var(--text);
+}
+.sidebar__link.is-active {
+  background: var(--brown);
+  color: #fff;
+  font-weight: 600;
+  box-shadow: 0 5px 13px rgba(107, 68, 35, 0.26);
+}
+.sidebar__icon {
+  flex: 0 0 17px;
+  font-size: 16px;
+  line-height: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* --- help card --- */
+.sidebar__help {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-top: 12px;
+  padding: 11px;
+  border-radius: 11px;
+  background: var(--panel-inset);
+  border: 1px solid var(--border-soft);
+  color: var(--text-2);
+}
+.sidebar__help:hover { background: #efe9df; }
+.sidebar__help-icon {
+  color: var(--accent);
+  flex: 0 0 17px;
+  font-size: 16px;
+  line-height: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.sidebar__help-text strong { display: block; font-size: 12px; color: var(--text); }
+.sidebar__help-text small { display: block; font-size: 11px; color: var(--text-muted); margin-top: 1px; }
+
+/* =========================================================================
+   Collapsed = icon-only rail (toggled by the topbar button).
+   Sidebar shrinks to a narrow strip; labels hide, icons centre, the logo
+   drops to just its mark, the help card drops to just its icon.
+   Hovering a nav item shows its label as a tooltip.
+   ========================================================================= */
+.admin-shell.is-collapsed .sidebar {
+  flex-basis: var(--sidebar-w-min, 72px);
+  width: var(--sidebar-w-min, 72px);
+  padding-left: 10px;
+  padding-right: 10px;
+}
+
+.admin-shell.is-collapsed .sidebar__logo {
+  justify-content: center;
+  padding: 0 0 22px;
+}
+.admin-shell.is-collapsed .sidebar__logo-text,
+.admin-shell.is-collapsed .sidebar__link span,
+.admin-shell.is-collapsed .sidebar__help-text {
+  display: none;
+}
+
+.admin-shell.is-collapsed .sidebar__link {
+  justify-content: center;
+  padding: 11px 0;
+  gap: 0;
+  position: relative;
+}
+
+/* tooltip on hover */
+.admin-shell.is-collapsed .sidebar__link:hover::after {
+  content: attr(data-label);
+  position: absolute;
+  left: calc(100% + 10px);
+  top: 50%;
+  transform: translateY(-50%);
+  white-space: nowrap;
+  background: var(--text);
+  color: #fff;
+  font-size: 12px;
+  font-weight: 500;
+  padding: 6px 10px;
+  border-radius: 6px;
+  box-shadow: var(--shadow-card);
+  z-index: 40;
+  pointer-events: none;
+}
+
+.admin-shell.is-collapsed .sidebar__help {
+  justify-content: center;
+  padding: 12px 0;
+}

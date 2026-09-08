@@ -1,0 +1,97 @@
+/* field/home/css/home.css
+ * This page's own styles. Palette tokens come from the header component,
+ * which loads first. No shared admin stylesheet by design.
+ */
+
+/* ---- flash ---- */
+.fh-flash {
+  display: flex; align-items: center; gap: 8px;
+  background: #eaf6ec; color: #2f7a3d; border: 1px solid #c6e4c1;
+  border-radius: var(--radius-sm); padding: 10px 12px;
+  font-size: 12.5px; font-weight: 600; margin-bottom: 14px;
+}
+
+/* ---- greeting ---- */
+.fh-greeting {
+  display: flex; align-items: flex-start; justify-content: space-between;
+  gap: 10px; margin-bottom: 16px;
+}
+.fh-greeting__sub { margin: 5px 0 0; font-size: 12.5px; color: var(--text-2); line-height: 1.5; }
+.fh-date-pill {
+  display: inline-flex; align-items: center; gap: 5px;
+  padding: 5px 10px; border-radius: 999px;
+  background: var(--card-bg); border: 1px solid var(--border-soft);
+  font-size: 10.5px; font-weight: 600; color: var(--text-2);
+  white-space: nowrap;
+}
+
+/* ---- attendance CTA ---- */
+.fh-cta {
+  border-radius: var(--radius-card);
+  background: linear-gradient(160deg, #fdf3e4 0%, #f9e7cf 100%);
+  border: 1px solid #f0dcb9;
+  padding: 22px 18px;
+  margin-bottom: 16px;
+  text-align: center;
+}
+.fh-cta--done {
+  background: linear-gradient(160deg, #eaf6ec 0%, #dcecd7 100%);
+  border-color: #c6e4c1;
+}
+.fh-cta__icon {
+  width: 52px; height: 52px; border-radius: 50%;
+  display: grid; place-items: center; margin: 0 auto 12px;
+  background: #fdecd2; color: #d9822b; font-size: 22px;
+  box-shadow: var(--shadow-card);
+}
+.fh-cta__icon--ok { background: #dcecd7; color: #2f7a3d; }
+.fh-cta h2 { font-size: 15.5px; margin-bottom: 6px; }
+.fh-cta p { margin: 0 0 16px; font-size: 12.5px; color: var(--text-2); line-height: 1.5; }
+.fh-cta__btn {
+  display: inline-flex; align-items: center; gap: 8px;
+  padding: 12px 22px; border-radius: var(--radius-sm);
+  background: var(--brown); color: #fff;
+  font-size: 13.5px; font-weight: 700;
+}
+.fh-cta__btn--ghost { background: #fff; color: var(--brown); border: 1px solid var(--border); }
+.fh-cta__note {
+  display: flex; align-items: center; justify-content: center; gap: 5px;
+  margin: 12px 0 0 !important; font-size: 10.5px; color: var(--text-muted) !important;
+}
+.fh-cta__np {
+  display: flex; flex-direction: column; gap: 6px;
+  margin: 0 0 16px !important; font-size: 13px; line-height: 1.6;
+  color: #000 !important; font-weight: 600;
+}
+.fh-cta__np-text {
+  font-weight: 700 !important; color: #000 !important;
+  margin: 0 0 16px !important; font-size: 13px; line-height: 1.6;
+}
+
+/* ---- stat tiles ---- */
+.fh-stat-row {
+  display: grid; grid-template-columns: 1fr 1fr;
+  gap: 10px; margin-bottom: 16px;
+}
+.fh-stat-row .fh-stat:last-child:nth-child(3) { grid-column: 1 / -1; }
+.fh-stat {
+  background: var(--card-bg); border: 1px solid var(--border-soft);
+  border-radius: var(--radius-card); padding: 14px;
+  box-shadow: var(--shadow-card);
+}
+.fh-stat__icon {
+  width: 32px; height: 32px; border-radius: 9px;
+  display: grid; place-items: center; font-size: 15px;
+  margin-bottom: 8px;
+}
+.fh-stat__icon--green  { background: #dcecd7; color: #2f7a3d; }
+.fh-stat__icon--blue   { background: #d9e4f1; color: #2b5f9e; }
+.fh-stat__icon--purple { background: #e6def6; color: #6a4bb0; }
+.fh-stat__icon--peach  { background: #f6e2cf; color: #a6631f; }
+.fh-stat__icon--red    { background: #fbe0dd; color: #c1362e; }
+.fh-stat__label { display: block; font-size: 10px; font-weight: 600; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.03em; margin-bottom: 4px; }
+.fh-stat__value { display: block; font-size: 19px; font-weight: 700; color: var(--text); }
+.fh-stat__tick { color: #2f7a3d; font-size: 14px; margin-right: 3px; vertical-align: -1px; }
+.fh-stat__value--sm { font-size: 14px; }
+.fh-stat__value--center { text-align: center; }
+.fh-stat__foot { display: block; margin-top: 3px; font-size: 10.5px; color: var(--text-muted); }

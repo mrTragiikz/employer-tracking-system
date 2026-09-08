@@ -1,0 +1,91 @@
+/* field/components/header/css/header.css
+ * Palette tokens + shell frame + top brand bar for the field (Employee) app.
+ * Mobile-only, single column. Loaded first so its tokens are available to
+ * every field page's own CSS (same pattern as the admin header component).
+ */
+
+:root {
+  --card-bg:      #ffffff;
+  --panel-bg:     #fffdf8;
+  --panel-inset:  #f3ede4;
+  --border:       #e7ddd0;
+  --border-soft:  #efe8de;
+  --text:         #2a2420;
+  --text-2:       #6b6156;
+  --text-muted:   #948a7d;
+  --brown:        #6b4423;
+  --brown-strong: #4f3018;
+  --accent:       #8a5a2e;
+  --down:         #c1362e;
+  --radius-card:  16px;
+  --radius-sm:    10px;
+  --shadow-card:  0 4px 16px -6px rgba(70, 45, 25, 0.10);
+  --header-h:     58px;
+  --tabbar-h:     64px;
+}
+
+* { box-sizing: border-box; }
+html, body { margin: 0; padding: 0; }
+
+body.field {
+  font-family: 'Inter', system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+  font-size: 14px;
+  line-height: 1.5;
+  color: var(--text);
+  background: var(--panel-bg);
+  -webkit-font-smoothing: antialiased;
+}
+/* backstop for the viewport meta - see field/login/css/login.css for why
+   both are needed (iOS Safari can ignore user-scalable=no) */
+html { touch-action: pan-x pan-y; }
+
+a { color: inherit; text-decoration: none; }
+h1 { font-size: 19px; font-weight: 700; margin: 0; letter-spacing: -0.01em; }
+h2 { font-size: 14px; font-weight: 700; margin: 0; }
+
+/* ============================ shell frame ============================ */
+.field-shell {
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+  max-width: 480px;
+  margin: 0 auto;
+  background: var(--panel-bg);
+  position: relative;
+}
+
+/* ============================ top bar ============================ */
+.field-topbar {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  height: var(--header-h);
+  padding: 0 14px;
+  background: var(--card-bg);
+  border-bottom: 1px solid var(--border-soft);
+  position: sticky;
+  top: 0;
+  z-index: 20;
+}
+.field-topbar__brand {
+  display: flex; align-items: center; gap: 7px;
+  font-weight: 700; font-size: 15px; color: var(--text);
+}
+.field-topbar__brand i { color: var(--brown); font-size: 16px; }
+.field-topbar__right {
+  margin-left: auto;
+  display: flex; align-items: center; gap: 10px;
+}
+.field-topbar__avatar {
+  width: 34px; height: 34px; border-radius: 50%;
+  display: grid; place-items: center;
+  background: var(--panel-inset); color: var(--brown);
+  font-size: 12px; font-weight: 700;
+  overflow: hidden;
+}
+.field-topbar__avatar img { width: 100%; height: 100%; object-fit: cover; display: block; }
+
+.field-main {
+  flex: 1 1 auto;
+  padding: 16px 14px calc(var(--tabbar-h) + 16px);
+}

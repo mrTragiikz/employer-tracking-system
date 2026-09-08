@@ -1,0 +1,12 @@
+/* admin/components/footer/css/footer.css */
+
+.admin-footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 16px 28px 20px;
+  font-size: 11.5px;
+  color: var(--text-muted);
+}
+
+.admin-footer__heart { color: var(--down); }

@@ -1,0 +1,43 @@
+# Real secrets - never commit (DB credentials, APP_URL, APP_SECRET - see
+# secure_config/secure_config.php). Move this file to the live server by
+# hand (FTP / File Manager), not git. The .htaccess in that folder IS
+# tracked (it's the safety net, not a secret).
+/secure_config/secure_config.php
+
+# Runtime
+/logs/*
+!/logs/.htaccess
+
+# Uploaded photos (real captures never committed; demo placeholders are kept)
+/uploads/*
+!/uploads/.htaccess
+!/uploads/demo/
+/uploads/demo/*
+!/uploads/demo/*.jpg
+
+# Dependencies (if Composer is added later)
+/vendor/
+
+# Deploy bundle / archives - a rebuilt copy of the tree, never tracked
+/track.zip
+*.zip
+
+# Claude Code local session state (memory index + per-project settings live
+# under the user's home, not here - this is just any stray local config)
+/.claude/settings.local.json
+
+# One-off diagnostic / cleanup scripts - must never reach a live server OR git
+/_diag*.php
+/wipe_*.php
+/test.php
+
+# Database dumps taken for inspection (schema of record is sql/database.sql)
+/*_track.sql
+/*.sql.gz
+
+# OS / editor
+Thumbs.db
+.DS_Store
+.idea/
+.vscode/
+*.swp

@@ -1,0 +1,39 @@
+/* field/components/footer/css/footer.css
+ * Bottom tab bar for the field (Employee) app.
+ */
+
+.field-tabbar {
+  position: fixed;
+  bottom: 0; left: 50%;
+  transform: translateX(-50%);
+  width: 100%; max-width: 480px;
+  height: var(--tabbar-h);
+  background: var(--card-bg);
+  border-top: 1px solid var(--border-soft);
+  display: flex;
+  z-index: 20;
+  padding-bottom: env(safe-area-inset-bottom, 0);
+}
+.field-tabbar__item {
+  flex: 1 1 0;
+  display: flex; flex-direction: column; align-items: center; justify-content: center;
+  gap: 3px;
+  color: var(--text);
+  font-size: 10px; font-weight: 700;
+  padding: 6px 2px;
+  margin: 4px 3px;
+  border-radius: var(--radius-sm);
+  text-align: center;
+}
+.field-tabbar__item i { font-size: 19px; }
+.field-tabbar__item.is-active {
+  color: var(--brown-strong);
+  background: #fdecd2;
+  font-weight: 800;
+}
+.field-tabbar__item.is-active i { color: var(--brown-strong); }
+
+/* "Check In/Out" is a longer label than the rest - keep all 5 a touch
+   tighter so it doesn't wrap awkwardly on a narrow phone. */
+.field-tabbar--5 .field-tabbar__item { font-size: 9px; gap: 2px; margin: 4px 2px; padding: 5px 1px; }
+.field-tabbar--5 .field-tabbar__item i { font-size: 17px; }

@@ -1,0 +1,191 @@
+/* field/checkinout/css/checkinout.css
+ * This page's own styles. Palette tokens come from the header component,
+ * which loads first. No shared admin/field stylesheet by design -
+ * duplicated from field/attendance/css/attendance.css, which used to own
+ * this form before Check In/Out became its own tab.
+ * Deliberately simple - one clear screen, no clutter.
+ */
+
+.page-head { margin-bottom: 16px; }
+.page-head__sub {
+  display: inline-flex; align-items: center; gap: 5px;
+  margin: 6px 0 0; padding: 5px 10px; border-radius: 999px;
+  background: #fff; border: 1px solid var(--border-soft);
+  font-size: 11.5px; font-weight: 600; color: var(--text-2);
+}
+.page-head__sub i { font-size: 12px; }
+
+.fa-flash {
+  display: flex; align-items: center; gap: 8px;
+  background: #fbe7e5; color: #c1362e;
+  border: 1px solid #f0c4c0; border-radius: var(--radius-sm);
+  padding: 10px 12px; font-size: 12.5px; margin-bottom: 14px;
+}
+.fa-flash--ok {
+  background: #eaf6ec; color: #2f7a3d; border-color: #c6e4c1;
+}
+
+.fa-form { display: flex; flex-direction: column; gap: 14px; }
+
+.fa-card {
+  background: var(--card-bg); border: 1px solid var(--border-soft);
+  border-radius: var(--radius-card); box-shadow: var(--shadow-card);
+  padding: 16px;
+}
+.fa-card__head { display: flex; align-items: flex-start; gap: 12px; margin-bottom: 12px; }
+
+.fa-view-btn {
+  flex: 0 0 auto; margin-left: auto;
+  display: flex; align-items: center; gap: 5px;
+  font: inherit; font-size: 11.5px; font-weight: 700; color: #fff;
+  background: #2f7a3d; border: 0; border-radius: 999px;
+  padding: 7px 13px; cursor: pointer;
+}
+.fa-view-btn:hover { filter: brightness(1.08); }
+.fa-view-btn i { font-size: 12px; }
+
+.fa-card__icon {
+  width: 36px; height: 36px; border-radius: 10px; flex: 0 0 36px;
+  display: grid; place-items: center; font-size: 16px;
+  background: var(--panel-inset); color: var(--brown);
+}
+.fa-card__head h2 { font-size: 14px; margin-bottom: 2px; }
+.fa-card__head p { margin: 0; font-size: 11.5px; color: var(--text-muted); line-height: 1.45; }
+
+/* ---- already checked in today / checked out ---- */
+.fa-card--done { border-color: #c6e4c1; background: #f4fbf5; }
+.fa-card__icon--ok { background: #dcecd7; color: #2f7a3d; }
+
+/* ---- check-in window closed (Settings > Attendance check-in policy) ---- */
+.fa-card--blocked { border-color: #f0c9c4; background: #fdf3f2; }
+.fa-card__icon--bad { background: #f3dad7; color: #a8433b; }
+
+/* ---- always-visible highlights (time+location, check-in/out KM) ---- */
+.fa-highlights {
+  display: flex; flex-direction: column; gap: 8px;
+  margin-bottom: 14px;
+}
+.fa-highlight {
+  display: flex; flex-direction: column; gap: 4px;
+  background: #fff; border: 1px solid #c6e4c1; border-radius: var(--radius-sm);
+  padding: 12px 14px;
+}
+.fa-highlight__label {
+  display: flex; align-items: center; gap: 6px;
+  font-size: 10.5px; font-weight: 700; color: #2f7a3d;
+  text-transform: uppercase; letter-spacing: 0.03em;
+}
+.fa-highlight__value { font-size: 17px; font-weight: 700; color: var(--text); line-height: 1.3; }
+.fa-highlight__sub {
+  display: flex; align-items: center; gap: 5px;
+  font-size: 11px; color: var(--text-muted);
+}
+.fa-highlight__sub::before {
+  content: "\f3e8"; font-family: "bootstrap-icons"; font-size: 12px;
+}
+.fa-summary { display: flex; flex-direction: column; gap: 10px; }
+.fa-summary[hidden] { display: none !important; }
+.fa-summary__row {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 9px 0; border-bottom: 1px solid var(--border-soft);
+}
+.fa-summary__row:last-child { border-bottom: 0; padding-bottom: 0; }
+.fa-summary__label { display: flex; align-items: center; gap: 7px; font-size: 12.5px; color: var(--text-2); }
+.fa-summary__label i { font-size: 13px; color: var(--text-muted); }
+.fa-summary__value { font-size: 13px; font-weight: 700; color: var(--text); }
+.fa-summary__photo {
+  width: 100%; border-radius: var(--radius-sm);
+  border: 1px solid var(--border-soft); display: block;
+  margin-top: 2px;
+}
+
+/* ---- check-out CTA on the "checked in" card ---- */
+.fa-checkout-btn {
+  display: flex; align-items: center; justify-content: center; gap: 8px;
+  width: 100%; min-height: 48px; margin-top: 14px;
+  font: inherit; font-size: 14px; font-weight: 700; color: #fff;
+  background: var(--brown); border: 0; border-radius: var(--radius-sm);
+  cursor: pointer; text-decoration: none;
+}
+.fa-checkout-btn:hover { filter: brightness(1.08); }
+.fa-checkout-note {
+  display: flex; align-items: center; gap: 6px;
+  margin-top: 12px; font-size: 11px; color: var(--text-muted);
+}
+
+/* ---- location: grabbed on tap, never an input ---- */
+.fa-locate-btn {
+  display: flex; align-items: center; justify-content: center; gap: 8px;
+  width: 100%; min-height: 48px;
+  font: inherit; font-size: 14px; font-weight: 700; color: #fff;
+  background: var(--down); border: 0; border-radius: var(--radius-sm);
+  cursor: pointer;
+}
+.fa-locate-btn:hover { filter: brightness(1.06); }
+.fa-locate-btn:disabled,
+.fa-locate-btn.is-loading { opacity: 0.75; cursor: progress; }
+.fa-locate-btn[hidden] { display: none; }
+
+.fa-location {
+  display: flex; align-items: center; gap: 10px;
+  min-height: 20px; padding: 12px 14px; border-radius: var(--radius-sm);
+  background: var(--panel-inset); border: 1px solid var(--border-soft);
+  font-size: 12.5px; color: var(--text-2);
+}
+.fa-location[hidden] { display: none !important; }
+.fa-location i { font-size: 16px; color: var(--text-muted); }
+.fa-location.is-waiting { background: var(--panel-inset); border-color: var(--border-soft); }
+.fa-location.is-ok { background: #eaf6ec; border-color: #c6e4c1; color: #2f7a3d; }
+.fa-location.is-ok i { color: #2f7a3d; }
+.fa-location.is-bad { background: #fbe7e5; border-color: #f0c4c0; color: #c1362e; }
+.fa-location.is-bad i { color: #c1362e; }
+.fa-location strong { color: inherit; }
+
+/* ---- odometer camera capture ---- */
+.fa-shot {
+  display: block; position: relative;
+  border: 1.5px dashed var(--border); border-radius: var(--radius-sm);
+  background: var(--panel-inset);
+  aspect-ratio: 4 / 3; width: 100%;
+  overflow: hidden; cursor: pointer;
+  margin-bottom: 14px;
+}
+.fa-shot__empty {
+  position: absolute; inset: 0;
+  display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 8px;
+  color: var(--text-muted); font-size: 12.5px; font-weight: 600;
+}
+.fa-shot__empty i { font-size: 28px; }
+.fa-shot__preview { width: 100%; height: 100%; object-fit: cover; display: block; }
+
+.fa-field-err { display: block; font-size: 11px; color: var(--down); margin-top: -8px; margin-bottom: 10px; }
+
+.fa-field { display: flex; flex-direction: column; gap: 5px; }
+.fa-field label { font-size: 11.5px; font-weight: 600; color: var(--text-2); }
+.fa-input {
+  font: inherit; font-size: 15px; color: var(--text);
+  padding: 12px 13px; border-radius: var(--radius-sm);
+  border: 1px solid var(--border); background: #fff;
+}
+.fa-input:focus { outline: none; border-color: var(--accent); box-shadow: 0 0 0 3px rgba(138,90,46,0.14); }
+
+/* ---- submit ---- */
+.fa-submit {
+  position: relative;
+  min-height: 50px; width: 100%;
+  display: inline-flex; align-items: center; justify-content: center; gap: 8px;
+  font: inherit; font-size: 14.5px; font-weight: 700; color: #fff;
+  border: 0; border-radius: var(--radius-sm);
+  background: linear-gradient(150deg, var(--accent) 0%, var(--brown) 55%, var(--brown-strong) 100%);
+  box-shadow: 0 8px 18px -8px rgba(63, 39, 18, 0.5);
+  cursor: pointer;
+}
+.fa-submit:disabled { opacity: 0.5; cursor: not-allowed; box-shadow: none; }
+.fa-submit__spinner {
+  display: none; width: 16px; height: 16px; border-radius: 50%;
+  border: 2px solid rgba(255,255,255,0.4); border-top-color: #fff;
+  animation: fa-spin 0.6s linear infinite;
+}
+@keyframes fa-spin { to { transform: rotate(360deg); } }
+.fa-submit.is-loading .fa-submit__label { opacity: 0.85; }
+.fa-submit.is-loading .fa-submit__spinner { display: block; }

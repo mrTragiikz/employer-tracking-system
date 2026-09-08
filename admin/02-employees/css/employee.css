@@ -1,0 +1,1126 @@
+/* admin/02-employees/css/employee.css
+ * This section's own styles. Palette tokens come from the header component,
+ * which loads first. No shared admin stylesheet by design.
+ *
+ * COMPACT SCALE - matches 01-dashboard density. Do not enlarge:
+ * card padding 15px Â· gaps 14px Â· h2 14.5px Â· table td 11.5px Â· metrics 19px
+ */
+
+/* ---- Employee detail page: plain white ground (set via $bodyClass on view.php) ---- */
+body.admin.employee-detail { background: #ffffff; }
+/* on a white ground the white cards need a firmer edge to stay separated */
+body.admin.employee-detail .card {
+  border-color: var(--border);
+  box-shadow: 0 1px 2px rgba(43, 39, 36, 0.04);
+}
+body.admin.employee-detail .summary-row .sum-card,
+body.admin.employee-detail .profile-card { border-color: var(--border); }
+
+/* ---- card shell ---- */
+.card {
+  background: var(--card-bg);
+  border: 1px solid var(--border-soft);
+  border-radius: var(--radius-card);
+  box-shadow: var(--shadow-card);
+  padding: 15px;
+}
+.card + .card { margin-top: 14px; }
+.card__head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 12px;
+}
+.card__head h2 { font-size: 13.5px; }
+.card__link { font-size: 11.5px; font-weight: 600; color: var(--accent); }
+
+.section-note { color: var(--text-muted); font-size: 11.5px; line-height: 1.5; }
+
+/* ---- toolbar above a list (search / filters / "Add" button) ---- */
+.section-bar {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 14px;
+  flex-wrap: wrap;
+}
+.section-bar__spacer { flex: 1 1 auto; }
+
+/* ---- inputs / selects ---- */
+.input, .select {
+  appearance: none;
+  background: var(--card-bg);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 7px 11px;
+  font: inherit;
+  font-size: 12px;
+  color: var(--text);
+}
+.input::placeholder { color: var(--text-muted); }
+
+/* ---- buttons ---- */
+.btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  padding: 7px 13px;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--border);
+  background: var(--card-bg);
+  color: var(--text);
+  font: inherit;
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  text-decoration: none;
+  white-space: nowrap;
+}
+.btn:hover { background: var(--panel-inset); }
+.btn--primary { background: var(--brown); border-color: var(--brown); color: #fff; }
+.btn--primary:hover { background: var(--brown-strong); }
+.btn--sm { padding: 5px 9px; font-size: 11px; }
+.btn--icon { padding: 5px 8px; }
+.btn i { font-size: 13px; }
+
+/* ---- data table ---- */
+.table { width: 100%; border-collapse: collapse; }
+.table th {
+  text-align: left;
+  font-size: 9.5px;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+  padding: 7px 9px;
+  border-bottom: 1px solid var(--border);
+}
+.table td {
+  padding: 8px 9px;
+  font-size: 11.5px;
+  border-bottom: 1px solid var(--border-soft);
+  vertical-align: middle;
+}
+.table tr:last-child td { border-bottom: 0; }
+.table tbody tr:hover { background: var(--panel-inset); }
+.table__thumb { width: 34px; height: 26px; border-radius: 6px; object-fit: cover; background: var(--panel-inset); }
+.table__empty { color: var(--text-muted); font-size: 11.5px; padding: 14px 9px; }
+
+/* ---- status badges ----
+   approved/rejected are reused for day-status colour (closed = green,
+   incomplete = red) and for the Active/Inactive Employee badge. */
+.badge { display: inline-block; padding: 2px 7px; border-radius: 999px; font-size: 10px; font-weight: 600; }
+.badge--approved { background: #dcecd7; color: #3d7a49; }
+.badge--rejected { background: #f3dad7; color: #a8433b; }
+.badge--open     { background: #d9e4f1; color: #3d5a8a; }
+.badge--closed   { background: #e6e3de; color: #6f6862; }
+
+/* ---- simple form grid ---- */
+.form-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px 16px;
+}
+.field { display: flex; flex-direction: column; gap: 4px; }
+.field label { font-size: 11px; font-weight: 600; color: var(--text-2); }
+.field .input, .field .select { width: 100%; }
+.field--wide { grid-column: 1 / -1; }
+
+/* ---- pagination ---- */
+.pager {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 11.5px;
+}
+.pager a, .pager > span {
+  min-width: 26px;
+  height: 26px;
+  padding: 0 7px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 7px;
+  border: 1px solid var(--border);
+  color: var(--text-2);
+  text-decoration: none;
+}
+.pager a:hover { background: var(--panel-inset); }
+.pager .is-current { background: var(--brown); border-color: var(--brown); color: #fff; }
+.pager .is-disabled { opacity: 0.4; }
+.pager__gap { border: 0 !important; }
+
+/* =========================================================================
+   Employees list page
+   ========================================================================= */
+
+.page-head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+  margin: 2px 0 16px;
+}
+.page-head h1 { display: flex; align-items: baseline; gap: 8px; }
+.page-head__tag { font-size: 13px; font-weight: 500; color: var(--text-muted); }
+.page-head__actions { display: flex; gap: 8px; }
+
+.flash {
+  border-radius: 9px;
+  padding: 9px 13px;
+  font-size: 12px;
+  font-weight: 500;
+  margin-bottom: 14px;
+}
+.flash--ok { background: #dcecd7; color: #3d7a49; }
+.flash--err { background: #f3dad7; color: #a8433b; }
+
+.throttle-banner {
+  display: flex; align-items: center; justify-content: space-between; gap: 16px;
+  padding: 12px 16px;
+}
+.throttle-banner strong { display: flex; align-items: center; gap: 7px; font-size: 13px; }
+.throttle-banner .section-note { margin: 3px 0 0; color: inherit; opacity: 0.85; }
+.throttle-banner form { margin: 0; flex: 0 0 auto; }
+
+.c-danger { color: var(--down); }
+.btn--danger { color: var(--down); border-color: #eab8b2; }
+.btn--danger:hover { background: #f3dad7; }
+
+/* stat cards (compact, same shape as dashboard) */
+.stat-row {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 14px;
+  margin-bottom: 14px;
+}
+.stat-card {
+  background: var(--card-bg);
+  border: 1px solid var(--border-soft);
+  border-radius: var(--radius-card);
+  box-shadow: var(--shadow-card);
+  padding: 14px;
+  display: grid;
+  grid-template-columns: 40px 1fr;
+  column-gap: 12px;
+  row-gap: 2px;
+  align-content: center;
+}
+.stat-card__tile {
+  grid-row: 1 / span 3;
+  align-self: start;
+  width: 40px; height: 40px;
+  border-radius: 11px;
+  display: grid; place-items: center;
+  color: var(--accent);
+  font-size: 18px;
+}
+.stat-card__tile--peach { background: #f6e2cf; }
+.stat-card__tile--green { background: #dcecd7; }
+.stat-card__tile--blue { background: #d9e4f1; }
+.stat-card__tile--purple { background: #e5ddf0; }
+.stat-card__label { color: var(--text-2); font-size: 12px; }
+.stat-card__value { font-size: 19px; font-weight: 700; line-height: 1.25; }
+.stat-card__foot { color: var(--text-muted); font-size: 10.5px; }
+
+/* filter bar */
+.filter-bar {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  margin-bottom: 14px;
+  flex-wrap: wrap;
+}
+.filter-bar__search {
+  position: relative;
+  flex: 1 1 260px;
+  min-width: 220px;
+}
+.filter-bar__search i {
+  position: absolute;
+  left: 11px; top: 50%;
+  transform: translateY(-50%);
+  color: var(--text-muted);
+  font-size: 13px;
+}
+.filter-bar__search .input { width: 100%; padding-left: 31px; }
+.filter-bar .select { min-width: 120px; }
+
+/* table */
+.table-wrap { overflow-x: auto; }
+.employees-table { min-width: 880px; }
+.employees-table th.ta-right, .employees-table td.ta-right { text-align: right; }
+.c-muted { color: var(--text-muted); }
+
+.employee-cell { display: flex; align-items: center; gap: 9px; }
+.employee-cell__text { display: flex; flex-direction: column; line-height: 1.25; }
+.employee-cell__text strong { font-size: 12px; font-weight: 600; }
+.employee-cell__text small { font-size: 10.5px; color: var(--text-muted); }
+
+.avatar {
+  width: 30px; height: 30px;
+  border-radius: 50%;
+  background: var(--panel-inset);
+  color: var(--text-2);
+  display: grid; place-items: center;
+  font-size: 10.5px;
+  font-weight: 700;
+  flex: 0 0 30px;
+  overflow: hidden;
+}
+.avatar--photo { background: none; }
+.avatar--photo img { width: 100%; height: 100%; object-fit: cover; }
+
+.row-actions { display: inline-flex; gap: 6px; justify-content: flex-end; align-items: center; }
+.row-actions form { margin: 0; }
+
+.row-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  height: 28px;
+  padding: 0 9px;
+  border: 1px solid transparent;
+  border-radius: 7px;
+  font-size: 11.5px;
+  font-weight: 600;
+  cursor: pointer;
+  text-decoration: none;
+  white-space: nowrap;
+}
+.row-btn i { font-size: 13px; }
+
+/* View - solid green button with a label */
+.row-btn--view {
+  background: #2f8f46;
+  color: #ffffff;
+  border-color: #267a3a;
+  padding: 0 11px;
+}
+.row-btn--view:hover { background: #2a8340; }
+
+/* Edit - tinted amber icon button */
+.row-btn--edit {
+  width: 28px; padding: 0;
+  justify-content: center;
+  background: #f6e2cf;
+  color: #a6631f;
+  border-color: #ecd0b3;
+}
+.row-btn--edit:hover { background: #f1d7bd; }
+
+/* Delete - tinted red icon button */
+.row-btn--del {
+  width: 28px; padding: 0;
+  justify-content: center;
+  background: #f6dcd9;
+  color: #b23a33;
+  border-color: #f0c0bb;
+}
+.row-btn--del:hover { background: #f2ccc7; }
+
+/* table footer */
+.table-foot {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-top: 14px;
+  flex-wrap: wrap;
+}
+.page-size { margin: 0; }
+.page-size .select { font-size: 11px; padding: 5px 9px; }
+
+/* =========================================================================
+   Add / edit form
+   ========================================================================= */
+.form-card { max-width: 760px; }
+
+/* ---- Employee photo ---- */
+.employee-photo {
+  display: flex; align-items: flex-start; gap: 16px;
+  padding-bottom: 16px; margin-bottom: 16px;
+  border-bottom: 1px solid var(--border-soft);
+}
+.employee-photo__preview {
+  flex: 0 0 78px; width: 78px; height: 78px;
+  border-radius: 12px; overflow: hidden;
+  background: var(--panel-inset);
+  display: grid; place-items: center;
+  border: 1px solid var(--border-soft);
+}
+.employee-photo__preview img { width: 100%; height: 100%; object-fit: cover; }
+.employee-photo__ph { font-size: 24px; font-weight: 700; color: var(--text-muted); }
+.employee-photo__body { flex: 1 1 auto; display: flex; flex-direction: column; gap: 5px; }
+.employee-photo__body label { font-size: 11px; font-weight: 600; color: var(--text-2); }
+.employee-photo__body .input[type="file"] { font-size: 11px; padding: 6px; }
+.employee-photo__remove { font-size: 11px; }
+.employee-photo__hint { margin: 0; font-size: 10.5px; color: var(--text-muted); min-height: 13px; }
+.employee-photo__hint.is-ok  { color: #2f7a3d; }
+.employee-photo__hint.is-bad { color: var(--down); font-weight: 600; }
+.employee-photo.has-error .employee-photo__preview { border-color: var(--down); }
+
+/* ---- vehicle picker ---- */
+.veh-pick { display: flex; flex-wrap: wrap; gap: 6px; }
+.veh-opt { position: relative; cursor: pointer; }
+.veh-opt input { position: absolute; opacity: 0; width: 0; height: 0; }
+.veh-opt span {
+  display: inline-flex; align-items: center; gap: 5px;
+  font-size: 11.5px; font-weight: 600; color: var(--text-2);
+  padding: 6px 11px; border-radius: 8px;
+  border: 1px solid var(--border); background: var(--card-bg);
+}
+.veh-opt span i { font-size: 13px; }
+.veh-opt input:checked + span {
+  background: var(--brown); border-color: var(--brown); color: #fff;
+}
+.veh-opt input:focus-visible + span { outline: 2px solid var(--accent); outline-offset: 1px; }
+.veh-opt--none span { color: var(--text-muted); }
+
+/* ---- ID card photos (front / back) ---- */
+.id-shot__row { display: flex; align-items: flex-start; gap: 12px; }
+.id-shot__thumb {
+  flex: 0 0 92px; width: 92px; height: 60px;
+  border-radius: 9px; overflow: hidden;
+  background: var(--panel-inset);
+  display: grid; place-items: center;
+  border: 1px solid var(--border-soft);
+}
+.id-shot__thumb img { width: 100%; height: 100%; object-fit: cover; display: block; }
+.id-shot__thumb i { font-size: 20px; color: var(--text-muted); }
+.id-shot__body { flex: 1 1 auto; display: flex; flex-direction: column; gap: 5px; }
+.id-shot__body .input[type="file"] { font-size: 11px; padding: 6px; }
+.id-shot__remove { font-size: 11px; }
+.id-shot__hint { margin: 0; font-size: 10.5px; color: var(--text-muted); min-height: 13px; }
+.id-shot__hint.is-ok  { color: #2f7a3d; }
+.id-shot__hint.is-bad { color: var(--down); font-weight: 600; }
+.id-shot.has-error .id-shot__thumb { border-color: var(--down); }
+
+.form-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 13px 16px;
+}
+.field { display: flex; flex-direction: column; gap: 4px; }
+.field label { font-size: 11px; font-weight: 600; color: var(--text-2); }
+.field .input, .field .select { width: 100%; }
+.field.has-error .input, .field.has-error .select { border-color: var(--down); }
+.field-err { font-size: 10.5px; color: var(--down); }
+.field--check { grid-column: 1 / -1; }
+.field--wide { grid-column: 1 / -1; }
+.check { display: flex; align-items: center; gap: 8px; font-size: 12px; color: var(--text-2); cursor: pointer; }
+.check input { width: 15px; height: 15px; }
+
+.form-section-h {
+  font-size: 12px;
+  color: var(--text-2);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  margin: 20px 0 10px;
+  padding-top: 14px;
+  border-top: 1px solid var(--border-soft);
+}
+
+.form-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+  margin-top: 16px;
+  padding-top: 14px;
+  border-top: 1px solid var(--border-soft);
+}
+
+/* =========================================================================
+   Employee detail page (view.php)  +  shared bits used across detail/attendance
+   ========================================================================= */
+
+/* ---- summary card row (also used on the Attendance tab and day.php) ---- */
+.summary-row {
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  gap: 12px;
+  margin-bottom: 14px;
+}
+.sum-card {
+  background: var(--card-bg);
+  border: 1px solid var(--border-soft);
+  border-radius: var(--radius-card);
+  box-shadow: var(--shadow-card);
+  padding: 13px;
+  display: flex;
+  gap: 11px;
+  align-items: flex-start;
+}
+.sum-card__icon {
+  width: 34px; height: 34px;
+  flex: 0 0 34px;
+  border-radius: 10px;
+  background: var(--panel-inset);
+  color: var(--accent);
+  display: grid; place-items: center;
+  font-size: 16px;
+}
+.sum-card__value { font-size: 17px; font-weight: 700; line-height: 1.2; }
+.sum-card__label { font-size: 11px; color: var(--text-2); margin-top: 1px; }
+.sum-card__sub { font-size: 10px; color: var(--text-muted); margin-top: 2px; }
+
+/* ---- single day / whole month picker ---- */
+.span-picker {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+  margin-bottom: 14px;
+}
+.span-picker__modes {
+  display: inline-flex;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  overflow: hidden;
+}
+.span-mode {
+  display: flex;
+  align-items: center;
+  padding: 6px 12px;
+  font-size: 11.5px;
+  font-weight: 600;
+  color: var(--text-2);
+  cursor: pointer;
+  background: var(--card-bg);
+  text-decoration: none;
+}
+.span-mode + .span-mode { border-left: 1px solid var(--border); }
+.span-mode:hover { background: var(--panel-inset); }
+.span-mode.is-active { background: var(--brown); color: #fff; }
+.span-mode.is-active:hover { background: var(--brown); }
+
+.span-picker__form { display: flex; align-items: center; gap: 8px; margin: 0; }
+.span-picker .input { font-size: 11.5px; padding: 6px 10px; }
+.span-picker__label { font-size: 11.5px; color: var(--text-muted); margin-left: 4px; }
+.span-picker__label strong { color: var(--text-2); }
+
+.crumbs { font-size: 11.5px; color: var(--text-muted); display: flex; align-items: center; gap: 5px; margin-top: 3px; }
+.crumbs a { color: var(--accent); text-decoration: none; }
+.crumbs i { font-size: 10px; }
+
+/* ---- profile card ---- */
+.profile-card {
+  display: grid;
+  grid-template-columns: 1.5fr 1fr 1.2fr;
+  gap: 22px;
+  padding: 18px;
+}
+.profile-col--id { display: flex; gap: 14px; }
+.profile-avatar {
+  width: 64px; height: 64px;
+  flex: 0 0 64px;
+  border-radius: 50%;
+  background: var(--panel-inset);
+  color: var(--text-2);
+  display: grid; place-items: center;
+  font-size: 20px;
+  font-weight: 700;
+  overflow: hidden;
+}
+.profile-avatar--photo { background: none; }
+.profile-avatar--photo img { width: 100%; height: 100%; object-fit: cover; }
+.profile-id__name {
+  font-size: 16px;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.profile-id__code { font-size: 11.5px; color: var(--text-muted); margin: 2px 0 8px; }
+.profile-id__line { font-size: 12px; color: var(--text-2); display: flex; align-items: center; gap: 6px; margin-top: 3px; }
+.profile-id__line i { color: var(--text-muted); font-size: 12px; width: 13px; }
+
+.profile-kv { display: flex; flex-direction: column; gap: 12px; margin: 0; }
+.profile-kv > div { display: flex; flex-direction: column; gap: 2px; }
+.profile-kv dt { font-size: 10.5px; color: var(--text-muted); display: flex; align-items: center; gap: 6px; }
+.profile-kv dt i { font-size: 11px; }
+.profile-kv dd { margin: 0; font-size: 12.5px; font-weight: 600; }
+
+/* ---- ID card photos on the profile card ---- */
+.id-cards__head {
+  font-size: 10.5px; color: var(--text-muted);
+  display: flex; align-items: center; gap: 6px; margin-bottom: 8px;
+}
+.id-cards__head i { font-size: 11px; }
+.id-cards__row { display: flex; gap: 10px; }
+.id-card { margin: 0; }
+.id-card a, .id-card__empty {
+  display: block; width: 118px; height: 74px;
+  border-radius: 9px; overflow: hidden;
+  border: 1px solid var(--border);
+  background: var(--panel-inset);
+}
+.id-card img { width: 100%; height: 100%; object-fit: cover; display: block; }
+.id-card__empty { display: grid; place-items: center; }
+.id-card__empty i { font-size: 18px; color: var(--text-muted); }
+.id-card figcaption { font-size: 10px; color: var(--text-muted); margin-top: 4px; text-align: center; }
+
+/* ---- top stat icons: tint variants ---- */
+.sum-card__icon--peach  { background: #f6e2cf; }
+.sum-card__icon--green  { background: #dcecd7; }
+.sum-card__icon--blue   { background: #d9e4f1; }
+.sum-card__icon--purple { background: #e5ddf0; }
+
+/* ---- tabs ---- */
+.tabs {
+  display: flex;
+  gap: 4px;
+  border-bottom: 1px solid var(--border);
+  margin-bottom: 16px;
+  overflow-x: auto;
+}
+.tab {
+  padding: 9px 14px;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--text-2);
+  text-decoration: none;
+  border-bottom: 2px solid transparent;
+  white-space: nowrap;
+}
+.tab:hover { color: var(--text); }
+.tab.is-active { color: var(--brown); border-bottom-color: var(--brown); }
+
+.tab-stub {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  color: var(--text-muted);
+  font-size: 12.5px;
+}
+.tab-stub i { font-size: 20px; color: var(--accent-soft); }
+.tab-stub p { margin: 0; }
+
+/* ---- overview: Day / Month / All time selector ---- */
+.ov-modes {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  flex-wrap: wrap;
+  margin: 0 0 14px;
+}
+.ov-modes__seg {
+  display: inline-flex;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  overflow: hidden;
+}
+.ov-seg {
+  padding: 6px 14px;
+  font-size: 11.5px;
+  font-weight: 600;
+  color: var(--text-2);
+  text-decoration: none;
+  background: var(--card-bg);
+}
+.ov-seg + .ov-seg { border-left: 1px solid var(--border); }
+.ov-seg:hover { background: var(--panel-inset); }
+.ov-seg.is-active { background: var(--brown); color: #fff; }
+.ov-seg.is-active:hover { background: var(--brown); }
+
+/* right side of the mode row: whichever date-picker/label the current mode
+   shows, plus the "Export PDF" button - grouped so they sit together
+   regardless of which of the 3 modes is active, rather than the export
+   button floating alone via space-between. */
+.ov-modes__right { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+.ov-export { color: #a8433b; border-color: #eab8b2; }
+.ov-export:hover { background: #f3dad7; }
+
+.ov-datepick { display: flex; align-items: center; gap: 8px; margin: 0; }
+.ov-datepick .input { font-size: 11.5px; padding: 6px 10px; }
+
+.stmt__sub {
+  display: block;
+  font-size: 10px;
+  font-weight: 500;
+  color: var(--text-muted);
+}
+
+/* the per-day list inside the Overview month view is compact (fewer columns) */
+.overview-grid .days-table { min-width: 620px; }
+
+/* month-view per-day list: week grouping + incomplete-day tint */
+.month-days .week-head td {
+  background: var(--panel-inset);
+  font-size: 10px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--text-muted);
+  padding: 6px 9px;
+}
+.month-days .day-row td { padding: 8px 9px; }
+.month-days .day-row.is-incomplete { background: #fdf3ef; }
+.month-days .day-row.is-incomplete:hover { background: #fceae3; }
+.month-days .day-row--absent td { padding: 6px 9px; }
+
+/* ---- overview grid ---- */
+.overview-grid {
+  display: grid;
+  grid-template-columns: 340px 1fr;
+  gap: 14px;
+  align-items: start;
+}
+.ov-left { display: flex; flex-direction: column; gap: 14px; }
+.ov-left .card + .card { margin-top: 0; }
+
+/* ---- today's statement list ---- */
+.stmt { list-style: none; margin: 0; padding: 0; }
+.stmt li {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 9px 0;
+  border-bottom: 1px solid var(--border-soft);
+}
+.stmt li:last-child { border-bottom: 0; }
+.stmt__ico {
+  width: 26px; height: 26px;
+  flex: 0 0 26px;
+  border-radius: 7px;
+  display: grid; place-items: center;
+  font-size: 12px;
+}
+.stmt__ico--green  { background: #dcecd7; color: #3d7a49; }
+.stmt__ico--blue   { background: #d9e4f1; color: #3d5a8a; }
+.stmt__ico--purple { background: #e5ddf0; color: #6b4f96; }
+.stmt__ico--peach  { background: #f6e2cf; color: #8a5a2e; }
+.stmt__ico--red    { background: #f3dad7; color: #a8433b; }
+.stmt__label { flex: 1 1 auto; font-size: 12px; color: #1c1a18; font-weight: 500; }
+.stmt__label .c-muted { font-weight: 400; }
+.stmt__value { font-size: 13px; font-weight: 700; color: #1c1a18; text-align: right; }
+.stmt__foot { margin: 10px 0 0; }
+
+/* the "Total time" summary row - set apart from the breakdown above it */
+.stmt li.stmt__total {
+  border-top: 2px solid var(--border);
+  border-bottom: 0;
+  margin-top: 3px;
+  padding-top: 11px;
+}
+.stmt li.stmt__total .stmt__label { color: var(--text); font-weight: 600; }
+.stmt li.stmt__total .stmt__value { font-size: 14px; }
+
+
+/* ---- notes ---- */
+.notes-view { font-size: 12px; color: var(--text-2); line-height: 1.5; white-space: pre-wrap; }
+.notes-view.is-empty { color: var(--text-muted); font-style: italic; }
+.notes-form textarea { width: 100%; font: inherit; font-size: 12px; resize: vertical; }
+.notes-form__actions { display: flex; justify-content: flex-end; gap: 7px; margin-top: 8px; }
+
+/* ---- timeline table ---- */
+.timeline-table { min-width: 720px; }
+.timeline-table td { vertical-align: top; padding-top: 12px; padding-bottom: 12px; }
+.timeline-table tbody tr + tr td { border-top: 1px solid var(--border-soft); }
+.tl-time { white-space: nowrap; font-weight: 700; color: var(--text); }
+.tl-time .tl-sub { display: block; font-weight: 500; font-size: 10px; color: var(--text-muted); margin-top: 2px; }
+.tl-status {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 3px 9px;
+  border-radius: 999px;
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: .02em;
+  text-transform: uppercase;
+  border: 1px solid transparent;
+}
+.tl-status--in {
+  background: #e3f1e0;
+  color: #1f7a3d;
+  border-color: #bfe0b8;
+}
+.tl-status--visit {
+  background: #e2ecfb;
+  color: #1f5fb0;
+  border-color: #bcd3f2;
+}
+.tl-status--out {
+  background: #fbe2e0;
+  color: #b23a33;
+  border-color: #f0c0bb;
+}
+.tl-ord { display: block; font-size: 10.5px; font-weight: 700; color: var(--text-2); margin-top: 3px; }
+
+/* ---- shop-detail chips on a visit row ---- */
+.tl-shop {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px;
+}
+.tl-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 10.5px;
+  line-height: 1;
+  font-weight: 600;
+  color: var(--text);
+  background: #fff;
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  padding: 4px 9px 4px 8px;
+  white-space: nowrap;
+}
+.tl-chip i {
+  font-size: 11px;
+  line-height: 1;
+}
+.tl-chip__sep { color: var(--border); font-weight: 400; margin: 0 1px; }
+
+/* time at shop - amber */
+.tl-chip--dwell { border-color: #ecdcc0; background: #fbf4e7; color: #8a5a1c; }
+.tl-chip--dwell i { color: #c58a2e; }
+.tl-chip--dwell.is-live {
+  border-color: #cfe4c8;
+  background: #eef6ea;
+  color: #2f7a3d;
+}
+.tl-chip--dwell.is-live i { color: #3d9350; }
+
+/* travel from previous stop - blue */
+.tl-chip--travel { border-color: #cfdff5; background: #eff5fd; color: #24548f; }
+.tl-chip--travel i { color: #3a72c4; }
+
+/* photo link - brown, clickable */
+.tl-chip--photo {
+  border-color: #e3d6c6;
+  background: #f7f1e8;
+  color: var(--accent);
+  text-decoration: none;
+  transition: background .12s ease, border-color .12s ease;
+}
+.tl-chip--photo i { color: var(--accent); }
+.tl-chip--photo:hover { background: #f0e6d6; border-color: #d6c4ad; }
+
+.tl-note {
+  font-size: 10.5px;
+  line-height: 1.4;
+  color: var(--text-2);
+  margin-top: 7px;
+  display: flex;
+  align-items: flex-start;
+  gap: 5px;
+  max-width: 320px;
+}
+.tl-note i { color: var(--text-muted); font-size: 11px; margin-top: 1px; }
+
+/* "Day started" / "Day ended" text on the check-in / check-out rows */
+.tl-plain { color: var(--text-2); font-size: 11px; }
+
+.pt-coord { font-size: 10px; color: var(--text-muted); }
+.stack { display: flex; flex-direction: column; gap: 2px; line-height: 1.3; }
+.pt-link {
+  font-size: 10px;
+  color: var(--accent);
+  text-decoration: none;
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+}
+.pt-link:hover { text-decoration: underline; }
+
+/* ---- day-absent panel ---- */
+.day-absent {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  padding: 6px 0;
+}
+.day-absent i { font-size: 22px; color: var(--down); }
+.day-absent p { margin: 3px 0 0; }
+.day-absent--sm i { font-size: 18px; }
+
+/* ---- attendance days table ---- */
+.days-table { min-width: 1000px; }
+.days-table thead th { white-space: nowrap; }
+.days-table td.ta-right, .days-table th.ta-right { text-align: right; }
+.day-row:hover { background: var(--panel-inset); }
+.day-row--absent { background: #fbf7f2; }
+.att-yes { color: #3d7a49; font-weight: 700; display: inline-flex; align-items: center; gap: 4px; font-size: 11px; }
+.att-no  { color: var(--text-muted); font-weight: 700; display: inline-flex; align-items: center; gap: 4px; font-size: 11px; }
+.att-absent-note { font-style: italic; }
+
+/* ---- day.php ---- */
+.day-endpoints {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 14px;
+  margin-bottom: 14px;
+}
+.endpoint { padding: 14px; }
+.endpoint__tag {
+  font-size: 10px;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--text-muted);
+}
+.endpoint__time { font-size: 18px; font-weight: 700; margin: 4px 0 2px; }
+.endpoint__time--none { font-size: 13px; color: var(--text-muted); font-weight: 600; }
+.endpoint__meta { font-size: 10.5px; color: var(--text-muted); margin-bottom: 6px; }
+
+.summary-row--4 { grid-template-columns: repeat(4, 1fr); }
+
+/* ---- day.php: "Route on map" panel (SVG sketch now, real map API later) ---- */
+.day-map { margin-bottom: 14px; scroll-margin-top: 84px; }
+.day-map > .day-map__canvas,
+.day-map > .day-map__foot,
+.day-map > .day-map__list { margin-top: 12px; }
+.day-map[open] > .day-map__canvas { margin-top: 14px; }
+
+.day-map__summary {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  cursor: pointer;
+  list-style: none;
+  user-select: none;
+}
+.day-map__summary::-webkit-details-marker { display: none; }
+.day-map__summary-title {
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--text);
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+}
+.day-map__summary-title i { color: var(--accent); }
+.day-map__chev {
+  margin-left: auto;
+  color: var(--text-muted);
+  transition: transform .15s ease;
+}
+.day-map[open] .day-map__chev { transform: rotate(180deg); }
+
+.day-map__canvas {
+  position: relative;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  overflow: hidden;
+  aspect-ratio: 960 / 380;
+}
+.day-map__svg { display: block; width: 100%; height: 100%; }
+/* Real Mapbox map - same box as the SVG sketch it replaces (see
+   mapbox-route.js: it only clears this div's fallback content once it can
+   actually render, so the SVG below stays visible until then). */
+.day-map__real,
+.day-map__real.mapboxgl-map {
+  position: absolute !important;
+  inset: 0 !important;
+  width: 100% !important;
+  height: 100% !important;
+}
+.day-map__badge {
+  position: absolute;
+  bottom: 8px; left: 8px;
+  display: inline-flex; align-items: center; gap: 5px;
+  font-size: 10px; color: var(--text-2);
+  background: rgba(255,255,255,.9);
+  border: 1px solid var(--border-soft);
+  border-radius: 999px;
+  padding: 3px 9px;
+  z-index: 1;
+}
+.day-map__badge i { font-size: 11px; color: #2b6fd6; }
+
+/* "Refresh map" - top-left, green. Only rendered inside the canvas, which is
+   itself hidden while the panel is closed, so it shows only when the map is
+   open. It hides itself on click (see .is-loading) during the reload. */
+.day-map__refresh {
+  position: absolute;
+  top: 8px; left: 8px;
+  z-index: 2;
+  display: inline-flex; align-items: center; gap: 5px;
+  font: inherit; font-size: 10.5px; font-weight: 700;
+  color: #ffffff;
+  background: #2f8f46;
+  border: 1px solid #267a3a;
+  border-radius: 6px;
+  padding: 4px 10px;
+  cursor: pointer;
+  box-shadow: 0 1px 3px rgba(0,0,0,.14);
+}
+.day-map__refresh:hover { background: #2a8340; }
+.day-map__refresh i { font-size: 11px; }
+.day-map__refresh.is-loading { display: none; }
+.day-map__refresh.is-loading i { animation: dm-spin .7s linear infinite; }
+@keyframes dm-spin { to { transform: rotate(360deg); } }
+
+/* "Expand map" - right side, clear of "Refresh map" (top-left) and stacked
+   just below Mapbox's own zoom controls (top-right, ~78px tall for the
+   +/-/compass group) rather than beside them, so neither ever overlaps or
+   crowds the other. */
+.day-map__expand {
+  position: absolute;
+  top: 90px; right: 8px;
+  z-index: 2;
+  width: 28px; height: 28px;
+  display: grid; place-items: center;
+  border-radius: 6px;
+  border: 1px solid var(--border);
+  background: rgba(255, 255, 255, 0.92);
+  color: var(--text-2);
+  font-size: 12px;
+  cursor: pointer;
+  box-shadow: 0 1px 3px rgba(0,0,0,.14);
+}
+.day-map__expand:hover { background: #fff; color: var(--accent); }
+
+/* the route line, drawn like a directions overlay: white casing + blue stroke */
+.day-map__route-case {
+  fill: none;
+  stroke: #ffffff;
+  stroke-width: 9;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+.day-map__route {
+  fill: none;
+  stroke: #2b6fd6;
+  stroke-width: 5;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+/* open day: the route so far is dashed to show it is not finished */
+.day-map__route--live { stroke-dasharray: 10 9; }
+
+/* soft pulse on the Employee's current position (last point of an open route) */
+.day-map__here-halo {
+  fill: #2b6fd6;
+  opacity: .18;
+  animation: dm-pulse 1.8s ease-out infinite;
+}
+@keyframes dm-pulse {
+  0%   { transform: scale(.55); opacity: .28; transform-box: fill-box; transform-origin: center; }
+  70%  { transform: scale(1.4);  opacity: 0;   transform-box: fill-box; transform-origin: center; }
+  100% { transform: scale(1.4);  opacity: 0;   transform-box: fill-box; transform-origin: center; }
+}
+@media (prefers-reduced-motion: reduce) { .day-map__here-halo { animation: none; opacity: .2; } }
+
+/* pins */
+.day-map__pin-body { fill: #2b6fd6; stroke: #ffffff; stroke-width: 2.5; }
+.day-map__pin-text { fill: #ffffff; font-size: 13px; font-weight: 700; }
+.day-map__pin--checkin  .day-map__pin-body { fill: #2f8f46; }
+.day-map__pin--checkout .day-map__pin-body { fill: #d64541; }
+/* the letter for A / Z sits in the round head of the teardrop */
+.day-map__pin--checkin  .day-map__pin-text,
+.day-map__pin--checkout .day-map__pin-text { font-size: 15px; }
+
+.day-map__foot { margin: 9px 2px 0; }
+
+.day-map__list {
+  list-style: none;
+  margin: 12px 0 0;
+  padding: 10px 0 0;
+  border-top: 1px solid var(--border-soft);
+  counter-reset: none;
+}
+.day-map__row {
+  display: grid;
+  grid-template-columns: 26px minmax(0, 1fr) auto auto;
+  align-items: center;
+  gap: 10px;
+  padding: 6px 2px;
+  font-size: 11.5px;
+}
+.day-map__row + .day-map__row { border-top: 1px dashed var(--border-soft); }
+.day-map__mark {
+  display: inline-flex; align-items: center; justify-content: center;
+  width: 22px; height: 22px;
+  border-radius: 999px;
+  font-size: 10px; font-weight: 700;
+  background: #2b6fd6; color: #fff;
+  border: 2px solid #fff;
+  box-shadow: 0 0 0 1px var(--border);
+}
+.day-map__row--checkin  .day-map__mark { background: #2f8f46; }
+.day-map__row--checkout .day-map__mark { background: #d64541; }
+.day-map__row--pending { opacity: .7; }
+.day-map__mark--pending {
+  background: var(--panel-inset); color: var(--text-muted);
+  border-color: var(--border);
+}
+.day-map__row--pending .day-map__label { color: var(--text-muted); }
+.day-map__label { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.day-map__time  { color: var(--text-2); white-space: nowrap; }
+.day-map__coord { color: var(--text-muted); font-size: 10.5px; white-space: nowrap; }
+.day-map__coord a { color: var(--accent); text-decoration: none; }
+.day-map__coord a:hover { text-decoration: underline; }
+
+@media (max-width: 640px) {
+  .day-map__row { grid-template-columns: 22px minmax(0, 1fr) auto; }
+  .day-map__coord { display: none; }
+}
+
+/* ---- day timeline table (day.php) ---- */
+.visits-table { min-width: 900px; }
+.visits-table thead th { font-size: 9px; padding: 8px 9px; }
+.visits-table td { font-size: 11px; padding: 8px 9px; vertical-align: top; }
+/* check-in / check-out rows: a faint tint + heavier rule so they read as the
+   bookends of the day, not just two more shop rows */
+.visits-table__endpoint > td { background: var(--panel-inset); }
+.visits-table__endpoint:first-child > td { border-bottom: 2px solid var(--border); }
+.visits-table__endpoint:last-child > td { border-top: 2px solid var(--border); }
+.visits-table__endpoint .stack > strong { color: var(--brown); }
+
+/* =========================================================================
+   Visits History tab
+   ========================================================================= */
+.vh-filter {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  flex-wrap: wrap;
+  margin-bottom: 12px;
+}
+.vh-filter .input { font-size: 11.5px; padding: 6px 10px; }
+.vh-filter__search { position: relative; flex: 1 1 200px; min-width: 180px; }
+.vh-filter__search i {
+  position: absolute; left: 10px; top: 50%; transform: translateY(-50%);
+  font-size: 12px; color: var(--text-muted);
+}
+.vh-filter__search .input { width: 100%; padding-left: 28px; }
+
+.vh-strip {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 12px;
+  margin-bottom: 14px;
+}
+.vh-strip > div {
+  background: var(--card-bg);
+  border: 1px solid var(--border-soft);
+  border-radius: var(--radius-card);
+  box-shadow: var(--shadow-card);
+  padding: 12px 14px;
+}
+.vh-strip strong { display: block; font-size: 18px; font-weight: 700; line-height: 1.1; }
+.vh-strip span { font-size: 10.5px; color: var(--text-muted); }
+
+.vh-table { min-width: 1000px; }
+.vh-table th, .vh-table td { vertical-align: top; }
+.vh-table td { line-height: 1.45; }
+.vh-date strong { display: block; font-size: 12px; }
+.vh-date span { display: block; font-size: 10px; }
+.vh-table .tl-note { font-size: 10px; }
+
+/* ---- form.php: PIN field show/hide toggle ---- */
+.pin-input { position: relative; }
+.pin-input .input { width: 100%; padding-right: 38px; }
+.pin-input__eye {
+  position: absolute; top: 50%; right: 6px; transform: translateY(-50%);
+  width: 28px; height: 28px; border: 0; background: none;
+  color: var(--text-muted); font-size: 15px; cursor: pointer;
+  display: grid; place-items: center; border-radius: 6px;
+}
+.pin-input__eye:hover { background: var(--panel-inset); color: var(--text); }
+

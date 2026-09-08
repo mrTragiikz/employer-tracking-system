@@ -1,0 +1,44 @@
+/* field/logout/css/logout.css
+ * "Are you sure?" logout confirmation. This page's own full styles - no
+ * shared admin/field stylesheet by design.
+ */
+
+.page-head { margin-bottom: 16px; }
+.lo-back {
+  display: inline-flex; align-items: center; gap: 6px;
+  font-size: 12.5px; font-weight: 600; color: var(--text-2);
+  text-decoration: none;
+}
+.lo-back:hover { color: var(--brown); }
+
+.lo-card {
+  background: var(--card-bg); border: 1px solid var(--border-soft);
+  border-radius: var(--radius-card); box-shadow: var(--shadow-card);
+  padding: 32px 24px; text-align: center;
+  display: flex; flex-direction: column; align-items: center; gap: 6px;
+}
+.lo-icon {
+  width: 60px; height: 60px; border-radius: 50%;
+  background: #fbe0dd; color: #c1362e;
+  display: grid; place-items: center; font-size: 26px;
+  margin-bottom: 8px;
+}
+.lo-card h1 { font-size: 18px; }
+.lo-card p { margin: 0 0 20px; font-size: 12.5px; color: var(--text-2); line-height: 1.5; max-width: 260px; }
+
+.lo-card form { width: 100%; margin: 0; }
+.lo-confirm {
+  display: flex; align-items: center; justify-content: center; gap: 8px;
+  min-height: 48px; width: 100%;
+  font: inherit; font-size: 14px; font-weight: 700; color: #fff;
+  background: #c1362e; border: 0; border-radius: var(--radius-sm);
+  cursor: pointer;
+}
+.lo-confirm:hover { filter: brightness(1.08); }
+
+.lo-cancel {
+  display: block; margin-top: 14px;
+  font-size: 12.5px; font-weight: 700; color: var(--text-2);
+  text-decoration: none;
+}
+.lo-cancel:hover { color: var(--brown); }
