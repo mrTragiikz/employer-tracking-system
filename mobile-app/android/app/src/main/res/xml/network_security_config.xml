@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  DEV ONLY. Trusts the local mkcert certificate authority so the debug APK
+  can talk to https://192.168.1.82/try without a certificate error.
+
+  The user's mkcert CA is at:
+    D:\xampp\apache\conf\ssl-track\CA\rootCA.pem
+  copied here as: res/raw/mkcert_ca.pem  (build.gradle bundles res/raw).
+
+  A RELEASE build for prabinsharma.com must NOT reference this file - the
+  live site uses a real (Let's Encrypt) certificate that Android already
+  trusts. See the manifest: android:networkSecurityConfig is only wired in
+  for debug via src/debug/AndroidManifest.xml.
+-->
+<network-security-config>
+    <domain-config cleartextTrafficPermitted="false">
+        <domain includeSubdomains="true">192.168.1.82</domain>
+        <domain includeSubdomains="true">192.168.16.158</domain>
+        <domain includeSubdomains="true">localhost</domain>
+        <trust-anchors>
+            <certificates src="@raw/mkcert_ca"/>
+            <certificates src="system"/>
+        </trust-anchors>
+    </domain-config>
+</network-security-config>
