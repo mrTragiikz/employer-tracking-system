@@ -8,9 +8,11 @@ import '../core/theme.dart';
 import '../models/models.dart';
 import '../services/capture_service.dart';
 import '../services/outbox.dart';
+import '../services/tracking_service.dart';
 import '../widgets/capture_fields.dart';
 import '../widgets/common.dart';
 import '../widgets/outbox_banner.dart';
+import '../widgets/tracking_permission_sheet.dart';
 
 /// Check In / Out - the web field/checkinout/ page. Owns the check-in and
 /// check-out ACTIONS (Attendance tab is read-only history).
@@ -73,6 +75,17 @@ class CheckInOutScreenState extends State<CheckInOutScreen> {
         _loading = false;
         _checkoutMode = false;
       });
+      // Live tracking follows the check-in state: recording between check-in
+      // and check-out, off otherwise. The service itself no-ops if the admin
+      // has tracking turned off (the first ping response tells it to stop).
+      final att = me['attendance'];
+      final checkedIn = att is Map && att['checked_in'] == true;
+      final checkedOut = att is Map && att['checked_out'] == true;
+      if (checkedIn && !checkedOut) {
+        await _ensureTrackingPermissionThenStart();
+      } else {
+        await TrackingService.instance.stop();
+      }
     } catch (e) {
       if (!mounted) return;
       setState(() {
@@ -85,6 +98,26 @@ class CheckInOutScreenState extends State<CheckInOutScreen> {
   Future<void> _refreshFromServer() async {
     await load();
     widget.onChanged?.call();
+  }
+
+  bool _trackingPrompted = false;
+
+  /// Ask for "Allow all the time" location the first time after a check-in,
+  /// then start the recording service. If the worker declines, check-in still
+  /// works - tracking just does not run and a note shows on the checked-in
+  /// card. Runs at most once per screen lifetime.
+  Future<void> _ensureTrackingPermissionThenStart() async {
+    if (await TrackingService.instance.isRunning) return;
+    if (_trackingPrompted) {
+      await TrackingService.instance.start();
+      return;
+    }
+    _trackingPrompted = true;
+    if (!mounted) return;
+    final ok = await showTrackingPermissionSheet(context);
+    if (ok) {
+      await TrackingService.instance.start();
+    }
   }
 
   @override

@@ -1,14 +1,19 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_foreground_task/flutter_foreground_task.dart';
 import 'core/api.dart';
 import 'core/theme.dart';
 import 'services/auth_service.dart';
 import 'services/outbox.dart';
+import 'services/tracking_service.dart';
 import 'screens/login_screen.dart';
 import 'screens/shell.dart';
 
 void main() {
   WidgetsFlutterBinding.ensureInitialized();
+  // Required before any foreground-task use (isolate <-> UI channel).
+  FlutterForegroundTask.initCommunicationPort();
   Outbox.instance.init();
+  TrackingService.instance.initForegroundTask();
   runApp(const RajdootApp());
 }
 
@@ -35,6 +40,7 @@ class _RajdootAppState extends State<RajdootApp> {
       title: 'Rajdoot',
       debugShowCheckedModeBanner: false,
       theme: buildTheme(),
+      builder: (context, child) => WithForegroundTask(child: child ?? const SizedBox()),
       home: AnimatedBuilder(
         animation: _auth,
         builder: (context, _) {

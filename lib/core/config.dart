@@ -27,4 +27,8 @@ class AppConfig {
 
   /// How often the announcement popup checks in (matches the web: ~8s).
   static const Duration announcementPoll = Duration(seconds: 8);
+
+  /// Live-tracking: how often the foreground service takes a GPS fix, before
+  /// the server pushes back its own interval. Matches the PHP default (90s).
+  static const Duration trackingDefaultInterval = Duration(seconds: 90);
 }
