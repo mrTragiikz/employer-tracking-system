@@ -8,10 +8,12 @@
  *   { "ok": true,
  *     "employee": { id, name, phone, code, photo_url },
  *     "attendance": <attendance object or null>,   // today
+ *     "checkin_blocked": false,                    // check-in window closed for today
  *     "server_time": "<ISO>" }
  *
  * The app calls this on launch (to decide: go to Home, or the check-in
- * screen) and after any check-in/out/visit to refresh.
+ * screen) and after any check-in/out/visit to refresh. checkin_blocked
+ * mirrors the web page's "Too Late to Check In" state (server clock only).
  */
 
 declare(strict_types=1);
@@ -37,5 +39,6 @@ json_out([
         'photo_url' => api_photo_url($me['photo_path']),
     ],
     'attendance'  => api_attendance($att, $now),
+    'checkin_blocked' => $att === null && attendance_checkin_blocked($today),
     'server_time' => api_iso($now),
 ]);
