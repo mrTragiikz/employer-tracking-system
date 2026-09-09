@@ -257,6 +257,11 @@ function visit_perform(PDO $pdo, array $me, string $today, array $input, array $
 /**
  * Mark the current open visit Done. Shared by the web endpoint and the API.
  *
+ * $visitId is the id of the visit to close. Pass 0 to close "whichever visit
+ * is currently open" - the mobile offline outbox uses this: a visit logged
+ * offline has no server id yet when its "Done" is queued behind it, and there
+ * is only ever one open visit at a time anyway, so 0 is unambiguous.
+ *
  * @return array{ok:bool, error?:string, dwell_seconds?:int}
  */
 function visit_complete_perform(PDO $pdo, array $me, string $today, int $visitId): array
@@ -268,9 +273,14 @@ function visit_complete_perform(PDO $pdo, array $me, string $today, int $visitId
     }
 
     $open = visit_open_one($pdo, (int) $att['id']);
-    if ($visitId <= 0 || $open === null || (int) $open['id'] !== $visitId) {
+    if ($open === null) {
         return ['ok' => false, 'error' => 'That visit is not open, or is already marked Done.'];
     }
+    // $visitId 0 = "close the open one" (offline replay); otherwise it must match.
+    if ($visitId > 0 && (int) $open['id'] !== $visitId) {
+        return ['ok' => false, 'error' => 'That visit is not open, or is already marked Done.'];
+    }
+    $visitId = (int) $open['id'];
 
     $dwell = max(0, strtotime('now') - strtotime($open['arrived_at']));
     $pdo->prepare('UPDATE visits SET left_at = NOW(), dwell_seconds = ? WHERE id = ? AND employee_id = ?')
