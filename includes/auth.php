@@ -309,6 +309,146 @@ function revoke_all_remember_tokens(PDO $pdo, int $userId): void
     }
 }
 
+// ===========================================================================
+// Mobile JSON API bearer tokens (field/api-v2/).
+//
+// The Flutter app is stateless: no PHP session, no cookie. It sends the raw
+// token in an "Authorization: Bearer <rowId>.<rawToken>" header on every
+// request. Same storage and the SAME security gates as the web "remember me"
+// flow - they share the field_remember_tokens table, so an admin Lock /
+// Reset PIN / Reset Device (which bumps security_stamp_at and/or deletes the
+// user's token rows) signs the app out on its next request too.
+//
+// Token format: "<rowId>.<64 hex chars>". Only the SHA-256 of the hex part is
+// stored (token_hash). The app keeps the whole string in secure storage.
+// ===========================================================================
+
+/**
+ * Mint a fresh API token for an employee and return the string to hand the
+ * app. Binds the token to the device_id (rule 10). Also prunes this user's
+ * stale rows, same policy as issue_remember_token().
+ */
+function api_issue_token(PDO $pdo, int $userId, ?string $deviceId): string
+{
+    $raw  = bin2hex(random_bytes(32));
+    $hash = hash('sha256', $raw);
+
+    $pdo->prepare(
+        'INSERT INTO field_remember_tokens (user_id, token_hash, device_id, user_agent, issued_at, last_used_at)
+         VALUES (?, ?, ?, ?, NOW(), NOW())'
+    )->execute([$userId, $hash, ($deviceId !== null && $deviceId !== '') ? $deviceId : null, client_ua()]);
+    $rowId = (int) $pdo->lastInsertId();
+
+    // prune - expired by issued_at, then cap to the newest N per user
+    try {
+        $ttlDays = (int) ceil(
+            (defined('FIELD_REMEMBER_TTL') ? (int) FIELD_REMEMBER_TTL : 60 * 60 * 24 * 400) / 86400
+        );
+        $pdo->prepare(
+            'DELETE FROM field_remember_tokens WHERE user_id = ? AND issued_at < (NOW() - INTERVAL ? DAY)'
+        )->execute([$userId, $ttlDays]);
+
+        $keep = defined('FIELD_REMEMBER_MAX_PER_USER') ? (int) FIELD_REMEMBER_MAX_PER_USER : 5;
+        $pdo->prepare(
+            "DELETE FROM field_remember_tokens
+              WHERE user_id = ?
+                AND id NOT IN (
+                    SELECT id FROM (
+                        SELECT id FROM field_remember_tokens
+                         WHERE user_id = ? ORDER BY id DESC LIMIT $keep
+                    ) AS keeprows
+                )"
+        )->execute([$userId, $userId]);
+    } catch (Throwable $e) {
+        // pruning is best-effort
+    }
+
+    return $rowId . '.' . $raw;
+}
+
+/**
+ * Verify the "Authorization: Bearer <rowId>.<hex>" header and return the
+ * employee row (secret_hash stripped), or null. Applies the SAME gates as
+ * consume_remember_token(): must still be a live employee, not left the job,
+ * and security_stamp_at must predate the token's issued_at. Bumps
+ * last_used_at on success. Does NOT rotate (a stateless client can't reliably
+ * store a rotated value on every request).
+ */
+function api_user(PDO $pdo): ?array
+{
+    $header = $_SERVER['HTTP_AUTHORIZATION']
+        ?? $_SERVER['REDIRECT_HTTP_AUTHORIZATION']   // some Apache/PHP-FPM setups
+        ?? '';
+    if (stripos($header, 'Bearer ') !== 0) {
+        return null;
+    }
+    $token = trim(substr($header, 7));
+    $parts = explode('.', $token, 2);
+    if (count($parts) !== 2 || !ctype_digit($parts[0]) || !ctype_xdigit($parts[1])) {
+        return null;
+    }
+    [$rowId, $raw] = [(int) $parts[0], $parts[1]];
+
+    try {
+        $st = $pdo->prepare(
+            'SELECT t.id, t.user_id, t.token_hash, t.device_id, t.issued_at,
+                    u.role, u.name, u.email, u.phone, u.is_active, u.deleted_at,
+                    u.left_job_at, u.security_stamp_at, u.device_id AS user_device_id,
+                    u.photo_path, u.code
+               FROM field_remember_tokens t
+               JOIN users u ON u.id = t.user_id
+              WHERE t.id = ? LIMIT 1'
+        );
+        $st->execute([$rowId]);
+        $row = $st->fetch();
+
+        if (!$row || !hash_equals((string) $row['token_hash'], hash('sha256', $raw))) {
+            return null;
+        }
+        if ($row['role'] !== 'employee'
+            || (int) $row['is_active'] !== 1
+            || $row['deleted_at'] !== null
+            || $row['left_job_at'] !== null
+        ) {
+            $pdo->prepare('DELETE FROM field_remember_tokens WHERE id = ?')->execute([$rowId]);
+            return null;
+        }
+        // admin Lock / Reset PIN / Reset Device gate
+        if ($row['security_stamp_at'] !== null
+            && strtotime((string) $row['security_stamp_at']) >= strtotime((string) $row['issued_at'])
+        ) {
+            $pdo->prepare('DELETE FROM field_remember_tokens WHERE id = ?')->execute([$rowId]);
+            return null;
+        }
+
+        $pdo->prepare('UPDATE field_remember_tokens SET last_used_at = NOW() WHERE id = ?')->execute([$rowId]);
+
+        return [
+            'id'          => (int) $row['user_id'],
+            'token_row'   => $rowId,
+            'role'        => 'employee',
+            'name'        => $row['name'],
+            'email'       => $row['email'],
+            'phone'       => $row['phone'],
+            'code'        => $row['code'],
+            'photo_path'  => $row['photo_path'],
+            'device_id'   => $row['user_device_id'],
+        ];
+    } catch (Throwable $e) {
+        return null;
+    }
+}
+
+/** Revoke ONE API token (logout from the app). */
+function api_revoke_token(PDO $pdo, int $tokenRow): void
+{
+    try {
+        $pdo->prepare('DELETE FROM field_remember_tokens WHERE id = ?')->execute([$tokenRow]);
+    } catch (Throwable $e) {
+        // best effort
+    }
+}
+
 /**
  * DEV ONLY. Log in as the first active user of the given role, no credentials.
  * Called from bootstrap.php, and ONLY when APP_ENV==='development' and the
@@ -631,7 +771,7 @@ function employee_authenticate(PDO $pdo, string $phone, string $pin, string $dev
     }
 
     $st = $pdo->prepare(
-        "SELECT id, role, name, phone, secret_hash, is_active, left_job_at,
+        "SELECT id, role, name, phone, code, photo_path, secret_hash, is_active, left_job_at,
                 failed_logins, locked_until, device_id
            FROM users
           WHERE role = 'employee' AND phone = ? AND deleted_at IS NULL

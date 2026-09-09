@@ -77,7 +77,10 @@ if ($isFieldRequest && defined('FIELD_SESSION_LIFETIME')) {
     ini_set('session.gc_maxlifetime', (string) FIELD_SESSION_LIFETIME);
 }
 
-if (session_status() !== PHP_SESSION_ACTIVE) {
+// The mobile JSON API (field/api-v2/) is stateless - bearer token, no session.
+// Its _boot.php defines TRACK_STATELESS_REQUEST before requiring this file so
+// no PHP session is started (no session cookie, no session file lock).
+if (!defined('TRACK_STATELESS_REQUEST') && session_status() !== PHP_SESSION_ACTIVE) {
     session_name(SESSION_NAME);
     session_set_cookie_params([
         'lifetime' => $sessionLifetime,

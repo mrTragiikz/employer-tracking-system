@@ -1,0 +1,23 @@
+# field/api-v2/ - mobile JSON API.
+#
+# Apache with mod_php normally drops the "Authorization: Bearer ..." header
+# before PHP sees it. These two rules put it back into a variable PHP can
+# read ($_SERVER['HTTP_AUTHORIZATION'] / REDIRECT_HTTP_AUTHORIZATION) - see
+# api_user() in includes/auth.php, which checks both.
+
+<IfModule mod_rewrite.c>
+    RewriteEngine On
+    RewriteCond %{HTTP:Authorization} .
+    RewriteRule .* - [E=HTTP_AUTHORIZATION:%{HTTP:Authorization}]
+</IfModule>
+
+# php-cgi / php-fpm: this alone is enough on many hosts.
+<IfModule mod_setenvif.c>
+    SetEnvIf Authorization "(.*)" HTTP_AUTHORIZATION=$1
+</IfModule>
+
+# Some cPanel stacks honour this to stop stripping the header at all.
+# CGIPassAuth needs Apache 2.4.13+; wrap it so an older server does not 500.
+<IfModule mod_ssl.c>
+    CGIPassAuth On
+</IfModule>
