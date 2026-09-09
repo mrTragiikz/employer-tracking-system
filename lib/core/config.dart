@@ -1,11 +1,16 @@
-/// Where the app talks to. Flip [isProd] to build for the live server.
+/// Where the app talks to.
 ///
-/// Dev points at this PC's LAN IP (a phone on the same WiFi can reach it;
-/// "localhost" would mean the phone itself). Keep it in sync with the PHP
-/// APP_URL in secure_config.php.
+/// Default is the dev PC over LAN (a phone on the same WiFi can reach it;
+/// "localhost" would be the phone itself). A release build passes
+/// `--dart-define=RAJDOOT_ENV=prod` to point at the live site instead - so
+/// the same source builds both, and no one has to remember to flip a bool.
+///
+/// Keep the URLs in sync with APP_URL in the PHP secure_config.php.
 class AppConfig {
-  /// false = dev PC over LAN, true = the live cPanel site.
-  static const bool isProd = false;
+  static const String _env = String.fromEnvironment('RAJDOOT_ENV', defaultValue: 'dev');
+
+  /// true = the live site, false = the dev PC.
+  static const bool isProd = _env == 'prod';
 
   static const String _devBase = 'https://192.168.1.82/try';
   static const String _prodBase = 'https://prabinsharma.com';

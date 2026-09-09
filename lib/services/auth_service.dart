@@ -2,6 +2,7 @@ import 'package:flutter/foundation.dart';
 import '../core/api.dart';
 import '../core/storage.dart';
 import '../models/models.dart';
+import 'outbox.dart';
 
 /// Holds the "are we signed in" state for the whole app. Listens do not need
 /// to know how the token is stored - they just read [employee] / [status].
@@ -69,6 +70,7 @@ class AuthService extends ChangeNotifier {
     } catch (_) {
       // even if the server call fails, sign out locally
     }
+    await Outbox.instance.clear();
     await Storage.instance.clearAll();
     employee = null;
     status = AuthStatus.signedOut;
@@ -77,6 +79,7 @@ class AuthService extends ChangeNotifier {
 
   /// Called by Api on a 401 from anywhere.
   Future<void> forceSignOut() async {
+    await Outbox.instance.clear();
     await Storage.instance.clearAll();
     employee = null;
     status = AuthStatus.signedOut;

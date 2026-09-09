@@ -7,8 +7,10 @@ import '../core/format.dart';
 import '../core/theme.dart';
 import '../models/models.dart';
 import '../services/capture_service.dart';
+import '../services/outbox.dart';
 import '../widgets/capture_fields.dart';
 import '../widgets/common.dart';
+import '../widgets/outbox_banner.dart';
 
 /// Check In / Out - the web field/checkinout/ page. Owns the check-in and
 /// check-out ACTIONS (Attendance tab is read-only history).
@@ -41,7 +43,20 @@ class CheckInOutScreenState extends State<CheckInOutScreen> {
   @override
   void initState() {
     super.initState();
+    Outbox.instance.addListener(_onOutbox);
     load();
+  }
+
+  @override
+  void dispose() {
+    Outbox.instance.removeListener(_onOutbox);
+    super.dispose();
+  }
+
+  void _onOutbox() {
+    if (!mounted) return;
+    setState(() {});
+    if (Outbox.instance.isEmpty) load();
   }
 
   Future<void> load() async {
@@ -131,6 +146,7 @@ class CheckInOutScreenState extends State<CheckInOutScreen> {
           Text(Fmt.longDate(DateTime.now()),
               style: const TextStyle(fontSize: 12, color: AppColors.text2)),
           const SizedBox(height: 16),
+          const OutboxBanner(),
           body,
         ],
       ),
@@ -203,19 +219,21 @@ class _CheckFormState extends State<_CheckForm> {
     }
 
     setState(() => _submitting = true);
+
+    final fields = <String, String>{
+      'lat': _fix!.lat.toString(),
+      'lng': _fix!.lng.toString(),
+      if (_fix!.accuracyM != null) 'accuracy': _fix!.accuracyM!.toString(),
+      'location_denied': '0',
+      'odometer_km': kmText,
+    };
+
     try {
       final form = FormData.fromMap({
-        'lat': _fix!.lat.toString(),
-        'lng': _fix!.lng.toString(),
-        if (_fix!.accuracyM != null) 'accuracy': _fix!.accuracyM!.toString(),
-        'location_denied': '0',
-        'odometer_km': kmText,
-        'odometer_photo': await MultipartFile.fromFile(
-          _photo!.path,
-          filename: 'odometer.jpg',
-        ),
+        ...fields,
+        'odometer_photo':
+            await MultipartFile.fromFile(_photo!.path, filename: 'odometer.jpg'),
       });
-
       await Api.instance.postForm(
         _isCheckout ? '/checkout.php' : '/checkin.php',
         form,
@@ -224,6 +242,20 @@ class _CheckFormState extends State<_CheckForm> {
       await widget.onDone();
     } on ApiException catch (e) {
       if (!mounted) return;
+      if (e.statusCode == 0) {
+        // offline - queue it and move on; the outbox replays when back online
+        await Outbox.instance.enqueue(
+          _isCheckout ? OutboxKind.checkout : OutboxKind.checkin,
+          fields: fields,
+          photo: _photo,
+        );
+        if (!mounted) return;
+        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
+          content: Text('No signal - saved. It will sync automatically.'),
+        ));
+        await widget.onDone();
+        return;
+      }
       setState(() {
         _submitting = false;
         _error = e.message;

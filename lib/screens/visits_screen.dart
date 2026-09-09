@@ -6,8 +6,10 @@ import '../core/format.dart';
 import '../core/theme.dart';
 import '../models/models.dart';
 import '../services/capture_service.dart';
+import '../services/outbox.dart';
 import '../widgets/capture_fields.dart';
 import '../widgets/common.dart';
+import '../widgets/outbox_banner.dart';
 
 /// My Visits - the web field/visit/ page. Log a visit, mark it Done, view it.
 ///
@@ -28,10 +30,26 @@ class VisitsScreenState extends State<VisitsScreen> {
   bool _loading = true;
   bool _completing = false;
 
+  int get _queuedVisitSaves =>
+      Outbox.instance.items.where((i) => i.kind == OutboxKind.visitSave).length;
+
   @override
   void initState() {
     super.initState();
+    Outbox.instance.addListener(_onOutbox);
     load();
+  }
+
+  @override
+  void dispose() {
+    Outbox.instance.removeListener(_onOutbox);
+    super.dispose();
+  }
+
+  void _onOutbox() {
+    if (mounted) setState(() {});
+    // when the outbox drains, the server state changed - refresh
+    if (Outbox.instance.isEmpty) load();
   }
 
   Future<void> load() async {
@@ -67,6 +85,18 @@ class VisitsScreenState extends State<VisitsScreen> {
       await _refresh();
     } on ApiException catch (e) {
       if (!mounted) return;
+      if (e.statusCode == 0) {
+        await Outbox.instance.enqueue(
+          OutboxKind.visitComplete,
+          fields: {'visit_id': visitId.toString()},
+        );
+        if (!mounted) return;
+        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
+          content: Text('No signal - saved. It will sync automatically.'),
+        ));
+        await _refresh();
+        return;
+      }
       ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(e.message)));
     } finally {
       if (mounted) setState(() => _completing = false);
@@ -122,8 +152,12 @@ class VisitsScreenState extends State<VisitsScreen> {
           Text(Fmt.longDate(DateTime.now()),
               style: const TextStyle(fontSize: 12, color: AppColors.text2)),
           const SizedBox(height: 16),
+          const OutboxBanner(),
 
-          if (!checkedIn)
+          if (_queuedVisitSaves > 0 && openVisit == null && checkedIn && !checkedOut)
+            _note(Icons.cloud_upload,
+                'A visit you logged offline is waiting to sync. You can log the next one once it uploads.')
+          else if (!checkedIn)
             _note(Icons.info, 'Check in first to log a visit.')
           else if (checkedOut)
             _note(Icons.check_circle,
@@ -352,13 +386,18 @@ class _LogVisitSheetState extends State<_LogVisitSheet> {
       _fieldErrors = null;
       _submitting = true;
     });
+
+    final fields = <String, String>{
+      'shop_name': _shop.text.trim(),
+      'area_name': _area.text.trim(),
+      'lat': _fix!.lat.toString(),
+      'lng': _fix!.lng.toString(),
+      if (_fix!.accuracyM != null) 'accuracy': _fix!.accuracyM!.toString(),
+    };
+
     try {
       final form = FormData.fromMap({
-        'shop_name': _shop.text.trim(),
-        'area_name': _area.text.trim(),
-        'lat': _fix!.lat.toString(),
-        'lng': _fix!.lng.toString(),
-        if (_fix!.accuracyM != null) 'accuracy': _fix!.accuracyM!.toString(),
+        ...fields,
         'shop_photo': await MultipartFile.fromFile(_photo!.path, filename: 'shop.jpg'),
       });
       await Api.instance.postForm('/visit-save.php', form);
@@ -366,6 +405,16 @@ class _LogVisitSheetState extends State<_LogVisitSheet> {
       Navigator.of(context).pop(true);
     } on ApiException catch (e) {
       if (!mounted) return;
+      if (e.statusCode == 0) {
+        await Outbox.instance.enqueue(
+          OutboxKind.visitSave,
+          fields: fields,
+          photo: _photo,
+        );
+        if (!mounted) return;
+        Navigator.of(context).pop(true);
+        return;
+      }
       setState(() {
         _submitting = false;
         _error = e.message;

@@ -2,11 +2,13 @@ import 'package:flutter/material.dart';
 import 'core/api.dart';
 import 'core/theme.dart';
 import 'services/auth_service.dart';
+import 'services/outbox.dart';
 import 'screens/login_screen.dart';
 import 'screens/shell.dart';
 
 void main() {
   WidgetsFlutterBinding.ensureInitialized();
+  Outbox.instance.init();
   runApp(const RajdootApp());
 }
 

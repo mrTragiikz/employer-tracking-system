@@ -5,6 +5,7 @@ import '../core/config.dart';
 import '../core/theme.dart';
 import '../models/models.dart';
 import '../services/auth_service.dart';
+import '../services/outbox.dart';
 import 'common.dart';
 
 /// Wraps the signed-in app and shows the admin -> employee announcement as a
@@ -58,7 +59,10 @@ class _AnnouncementGateState extends State<AnnouncementGate> with WidgetsBinding
 
   @override
   void didChangeAppLifecycleState(AppLifecycleState state) {
-    if (state == AppLifecycleState.resumed) _poll();
+    if (state == AppLifecycleState.resumed) {
+      _poll();
+      Outbox.instance.flush();
+    }
   }
 
   Future<void> _poll() async {

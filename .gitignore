@@ -44,3 +44,9 @@ app.*.map.json
 /android/app/debug
 /android/app/profile
 /android/app/release
+
+# Release signing - NEVER commit. The keystore + this file are what sign
+# every app update; keep them backed up outside the repo.
+/android/key.properties
+*.jks
+*.keystore

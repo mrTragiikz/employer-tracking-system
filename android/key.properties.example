@@ -1,0 +1,9 @@
+# Copy this to android/key.properties and fill in the real values.
+# key.properties is git-ignored - it and the .jks file are the ONLY things
+# that can sign an update to the installed app. Back both up somewhere safe
+# and permanent (not just this PC). Losing them means every user must
+# uninstall + reinstall to take a future version.
+storePassword=CHANGE_ME
+keyPassword=CHANGE_ME
+keyAlias=rajdoot
+storeFile=D:\\rajdoot-keystore\\rajdoot-release.jks
