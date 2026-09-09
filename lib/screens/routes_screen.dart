@@ -11,7 +11,7 @@ class RoutesScreen extends StatefulWidget {
   const RoutesScreen({super.key});
 
   @override
-  State<RoutesScreen> createState() => _RoutesScreenState();
+  State<RoutesScreen> createState() => RoutesScreenState();
 }
 
 class _RoutePoint {
@@ -35,7 +35,7 @@ class _RoutePoint {
       );
 }
 
-class _RoutesScreenState extends State<RoutesScreen> {
+class RoutesScreenState extends State<RoutesScreen> {
   DateTime _date = DateTime.now();
   List<_RoutePoint>? _points;
   Object? _error;

@@ -11,12 +11,12 @@ class AttendanceScreen extends StatefulWidget {
   const AttendanceScreen({super.key});
 
   @override
-  State<AttendanceScreen> createState() => _AttendanceScreenState();
+  State<AttendanceScreen> createState() => AttendanceScreenState();
 }
 
 enum _View { day, month, alltime }
 
-class _AttendanceScreenState extends State<AttendanceScreen> {
+class AttendanceScreenState extends State<AttendanceScreen> {
   _View _view = _View.day;
   DateTime _day = DateTime.now();
   DateTime _month = DateTime.now();
