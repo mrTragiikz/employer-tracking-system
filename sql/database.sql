@@ -588,6 +588,27 @@ CREATE TABLE `announcement_targets` (
   CONSTRAINT `fk_at_user` FOREIGN KEY (`user_id`) REFERENCES `users`(`id`) ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
+-- Live location tracking (Android app only). One row per GPS fix reported
+-- while a worker is checked in. DISPLAY-ONLY: never read by compute_day() /
+-- the audit path. Gated behind the `live_tracking_enabled` setting.
+-- See sql/migrations/2026-09-09_location-pings.sql.
+CREATE TABLE `location_pings` (
+  `id` BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
+  `attendance_id` INT UNSIGNED NOT NULL,
+  `employee_id` INT UNSIGNED NOT NULL,
+  `lat` DECIMAL(10,7) NOT NULL,
+  `lng` DECIMAL(10,7) NOT NULL,
+  `accuracy_m` DECIMAL(6,1) NULL,
+  `speed_kmh` DECIMAL(5,1) NULL,
+  `recorded_at` DATETIME NOT NULL COMMENT 'phone clock',
+  `received_at` DATETIME NOT NULL COMMENT 'server clock',
+  `device_id` VARCHAR(64) NULL,
+  PRIMARY KEY (`id`),
+  KEY `ix_emp_time` (`employee_id`, `recorded_at`),
+  KEY `ix_att` (`attendance_id`),
+  CONSTRAINT `fk_ping_att` FOREIGN KEY (`attendance_id`) REFERENCES `attendance`(`id`) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
 SET FOREIGN_KEY_CHECKS = 1;
 
 -- =============================================================================
@@ -608,7 +629,11 @@ INSERT INTO `settings` (`key_name`,`value`,`value_type`,`label_ne`,`label_en`) V
   -- attendance_checkin_blocked()).
   ('attendance_cutoff_enabled', '0', 'bool', 'हाजिरी समय सीमा लागू गर्नुहोस्', 'Enforce an attendance check-in window'),
   ('attendance_checkin_open_time', '09:00', 'string', 'हाजिरी पोर्टल खुल्ने समय (HH:MM)', 'Check-in portal opening time (HH:MM, 24h)'),
-  ('attendance_cutoff_time', '09:30', 'string', 'हाजिरी पोर्टल बन्द हुने समय (HH:MM)', 'Check-in portal closing time (HH:MM, 24h)');
+  ('attendance_cutoff_time', '09:30', 'string', 'हाजिरी पोर्टल बन्द हुने समय (HH:MM)', 'Check-in portal closing time (HH:MM, 24h)'),
+  -- Live location tracking (Android app only). OFF by default - an admin turns
+  -- it on in Settings. See includes/settings.php live_tracking_enabled().
+  ('live_tracking_enabled', '0', 'bool', 'लाइभ लोकेसन ट्र्याकिङ', 'Live location tracking (Android app)'),
+  ('live_tracking_interval_s', '90', 'int', 'ट्र्याकिङ अन्तराल (सेकेन्ड)', 'Tracking ping interval (seconds)');
 
 -- One admin, ready to log in. CHANGE THIS PASSWORD after first login
 -- (Users & Roles section). Default: username "prabin_dev", password "12345".

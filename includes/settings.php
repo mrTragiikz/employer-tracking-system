@@ -58,6 +58,28 @@ function same_location_tolerance_m(): int
     return (int) setting('same_location_tol_m', SAME_LOCATION_TOLERANCE_M);
 }
 
+// ---- Live location tracking (Android app only) ------------------------
+// Master switch for the whole feature. OFF by default. When off:
+//   - the "Live Track" button is hidden on the employee page
+//   - field/api-v2/ping.php refuses pings (app stops its GPS service)
+//   - the route maps fall back to the checkpoint-line behaviour everywhere
+// A browser cannot background-track, so this only ever affects the app.
+function live_tracking_enabled(): bool
+{
+    return (bool) setting('live_tracking_enabled', false);
+}
+
+/**
+ * How often (seconds) the app should send a GPS fix while checked in.
+ * Tunable from Settings without an app rebuild - the app reads it back off
+ * every ping response. Clamped to a sane 15s..600s.
+ */
+function live_tracking_interval_s(): int
+{
+    $s = (int) setting('live_tracking_interval_s', 90);
+    return max(15, min(600, $s));
+}
+
 // ---- Attendance check-in window policy ---------------------------------
 // Simplified to ONE rule, always enforced the same way: a check-in attempted
 // at/after the latest-allowed time is BLOCKED outright (the attendance row

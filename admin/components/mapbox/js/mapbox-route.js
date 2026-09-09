@@ -16,7 +16,13 @@
  * the [lng, lat] flip Mapbox requires internally, so no other code needs to
  * know Mapbox's coordinate order is reversed from the rest of the app.
  *
- * THE ROUTE LINE FOLLOWS THE ROADS. A straight line is drawn first (map never
+ * THE ROUTE LINE: for a TRACKED Android worker (data-ping-trail-url set and
+ * returning GPS points) it is drawn straight from those points - the real
+ * path the bike rode - with no Directions call. For everyone else (iOS / web
+ * workers, past days, tracking off) it is the checkpoint-to-checkpoint line
+ * below, unchanged:
+ *
+ * A straight line is drawn first (map never
  * blank), then swapped for the real road path fetched from the Mapbox
  * Directions API - ONE call per hop (fetchRoadGeometry() fans out over
  * fetchOneHop(), so one un-routable hop only straightens itself, not the
@@ -529,17 +535,100 @@
   }
 
   /**
+   * Draws a route line straight from a GPS trail (the real path a tracked
+   * Android worker actually rode) - NO Directions call, since these points
+   * already ARE the road path. Same white-case + blue-core + chevron styling
+   * as addRouteLine(), and the view is widened to fit the whole trail.
+   *
+   * trailCoords: array of [lng, lat] in time order, length >= 2.
+   */
+  function addTrailLine(map, trailCoords) {
+    registerDirectionArrow(map);
+
+    map.addSource('route-line', {
+      type: 'geojson',
+      data: { type: 'Feature', properties: {}, geometry: { type: 'LineString', coordinates: trailCoords } }
+    });
+    map.addLayer({
+      id: 'route-line-case', type: 'line', source: 'route-line', slot: 'top',
+      layout: { 'line-join': 'round', 'line-cap': 'round' },
+      paint: { 'line-color': '#ffffff', 'line-width': CASE_WIDTH, 'line-opacity': 1 }
+    });
+    map.addLayer({
+      id: 'route-line', type: 'line', source: 'route-line', slot: 'top',
+      layout: { 'line-join': 'round', 'line-cap': 'round' },
+      paint: { 'line-color': '#1a53d1', 'line-width': CORE_WIDTH, 'line-opacity': 1 }
+    });
+    map.addLayer({
+      id: 'route-line-arrows', type: 'symbol', source: 'route-line', slot: 'top',
+      layout: {
+        'symbol-placement': 'line', 'symbol-spacing': 70,
+        'icon-image': 'direction-arrow', 'icon-size': ARROW_SIZE,
+        'icon-rotation-alignment': 'map', 'icon-allow-overlap': true
+      }
+    });
+
+    try {
+      var b = new mapboxgl.LngLatBounds();
+      trailCoords.forEach(function (c) { b.extend(c); });
+      map.fitBounds(b, { padding: 56, duration: 0, maxZoom: 17 });
+    } catch (e) { /* ignore mid-teardown */ }
+  }
+
+  /**
+   * Fetch a tracked worker's real GPS trail from a URL (data-ping-trail-url).
+   * Resolves to an array of [lng, lat] in time order, or [] on any failure /
+   * empty result (caller then falls back to the Directions-drawn line).
+   */
+  function fetchPingTrail(url) {
+    if (!url) return Promise.resolve([]);
+    var controller = (typeof AbortController === 'function') ? new AbortController() : null;
+    var timer = controller ? setTimeout(function () { controller.abort(); }, 8000) : null;
+    return fetch(url, controller ? { signal: controller.signal, credentials: 'same-origin' } : { credentials: 'same-origin' })
+      .then(function (res) { return res.ok ? res.json() : null; })
+      .then(function (data) {
+        if (timer) clearTimeout(timer);
+        if (!data || !data.ok || !Array.isArray(data.points) || data.points.length < 2) return [];
+        return data.points.map(function (p) { return [p.lng, p.lat]; });
+      })
+      .catch(function () { if (timer) clearTimeout(timer); return []; });
+  }
+
+  /**
    * Adds the route line to a map that has finished loading. Draws the STRAIGHT
    * line between stops first (map never blank), then swaps in the real
    * road-following path from fetchRoadGeometry() - each hop (leg) offset to
    * its own right so an out-and-back on the same road shows as two parallel
    * lines. Styling: white outline case + blue core + blue chevron arrows.
    *
-   * @param map    Mapbox map instance, already past its 'load' event
-   * @param coords array of [lng, lat] pairs, in travel order, length >= 2
-   * @param token  Mapbox access token (needed for the Directions lookup)
+   * If trailUrl is given AND it returns a real GPS trail, that trail is drawn
+   * instead (no Directions call) - this is how a tracked Android worker's
+   * ACTUAL ridden path replaces the checkpoint-to-checkpoint guess. Any
+   * failure / empty trail falls straight back to the normal behaviour.
+   *
+   * @param map      Mapbox map instance, already past its 'load' event
+   * @param coords   array of [lng, lat] pairs, in travel order, length >= 2
+   * @param token    Mapbox access token (needed for the Directions lookup)
+   * @param trailUrl optional URL returning { ok, points:[{lat,lng}] }
    */
-  function addRouteLine(map, coords, token) {
+  function addRouteLine(map, coords, token, trailUrl) {
+    if (trailUrl) {
+      var mapGoneEarly = false;
+      map.on('remove', function () { mapGoneEarly = true; });
+      fetchPingTrail(trailUrl).then(function (trail) {
+        if (mapGoneEarly) return;
+        if (trail.length >= 2) {
+          addTrailLine(map, trail);
+        } else {
+          addRouteLineDirections(map, coords, token);
+        }
+      });
+      return;
+    }
+    addRouteLineDirections(map, coords, token);
+  }
+
+  function addRouteLineDirections(map, coords, token) {
     registerDirectionArrow(map);
 
     map.addSource('route-line', {
@@ -724,6 +813,12 @@
     }
     if (!points.length) return;
 
+    // Optional: a URL that returns the worker's real GPS trail for the day.
+    // When it has points, the route line is drawn from THEM (the actual ridden
+    // path) instead of the Directions guess between checkpoints. Empty / error
+    // -> normal behaviour. Only set for tracked Android workers.
+    var trailUrl = el.getAttribute('data-ping-trail-url') || '';
+
     el.innerHTML = ''; // clear the fallback content only once we know we can actually render
     mapboxgl.accessToken = token;
 
@@ -745,7 +840,7 @@
     map.on('load', function () {
       map.resize();
       if (coords.length >= 2) {
-        addRouteLine(map, coords, token);
+        addRouteLine(map, coords, token, trailUrl);
       }
 
       points.forEach(function (p, i) {

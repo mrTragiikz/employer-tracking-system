@@ -424,7 +424,10 @@ require dirname(__DIR__) . '/components/mapbox/mapbox.php';
         <div class="route-map-wrap">
           <div class="route-map mb-route-map" id="mb-dashboard-route"
                data-map-token="<?= e(defined('MAPBOX_ACCESS_TOKEN') ? MAPBOX_ACCESS_TOKEN : '') ?>"
-               data-map-points='<?= e($routePointsJson) ?>'>
+               data-map-points='<?= e($routePointsJson) ?>'
+               <?php // For a tracked Android worker this returns their real ridden
+                     // path and the map draws THAT; empty for web/iOS -> unchanged. ?>
+               data-ping-trail-url="<?= e(APP_URL) ?>/admin/components/mapbox/api/pings.php?employee=<?= (int) $routeEmployeeId ?>&amp;date=<?= e($today) ?>">
             <div class="route-map__bg">Map - integrated in a later step</div>
             <ol class="route-line">
               <?php foreach ($routePoints as $p): ?>

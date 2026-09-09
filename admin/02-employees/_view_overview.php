@@ -317,6 +317,7 @@ $exportPdfUrl = APP_URL . '/admin/02-employees/api/export-pdf.php?' . http_build
             $mapFoot       = count($ovMapPoints) . ' point' . (count($ovMapPoints) === 1 ? '' : 's')
                            . $dot . $doneShops . ' shop' . ($doneShops === 1 ? '' : 's') . ' visited'
                            . ($hasOut ? '' : $dot . 'not checked out yet');
+            $mapTrailUrl   = APP_URL . '/admin/components/mapbox/api/pings.php?employee=' . (int) $id . '&date=' . rawurlencode($onDate);
             require __DIR__ . '/_route_map.php';
           endif; ?>
           <div class="table-wrap">

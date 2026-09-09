@@ -67,6 +67,26 @@ function settings_schema(): array
                 ],
             ],
         ],
+
+        'tracking' => [
+            'title' => 'Live location tracking',
+            'icon'  => 'bi-broadcast',
+            'note'  => 'Android app only. Records where a worker travels between check-in and check-out, shown as the real road path on the route maps and the "Live Track" button. iOS / web workers are unaffected - a browser cannot track in the background. Does NOT change any audit figure (KM / time are still computed from check-in, visits and check-out only).',
+            'fields' => [
+                'live_tracking_enabled' => [
+                    'type'  => 'bool',
+                    'label' => 'Enable live location tracking',
+                    'help'  => 'When on: app workers\' phones send their GPS position while checked in, the "Live Track" button appears on each app worker\'s page, and the route maps show the real path they rode. When off: everything reverts to the current checkpoint-line behaviour and the app stops sending location.',
+                ],
+                'live_tracking_interval_s' => [
+                    'type'  => 'int',
+                    'label' => 'Ping interval (seconds)',
+                    'min'   => 15,
+                    'max'   => 600,
+                    'help'  => 'How often each phone sends a location fix. Lower = smoother "live" movement but more battery. 90 is a good balance; use 20-30 for a near-live moving dot after you have tested battery on real phones.',
+                ],
+            ],
+        ],
     ];
 }
 

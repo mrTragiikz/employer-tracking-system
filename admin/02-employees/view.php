@@ -24,6 +24,7 @@ $activeSection = 'employees';
 $sectionCss    = [
     APP_URL . '/admin/02-employees/css/employee.css',
     APP_URL . '/admin/components/mapbox/css/mapbox-route.css',
+    APP_URL . '/admin/02-employees/css/live-track.css',
 ];
 $bodyClass     = 'employee-detail';   // -> plain white page ground (see Employee.css)
 
@@ -141,6 +142,23 @@ require dirname(__DIR__) . '/components/mapbox/mapbox.php';
       <a class="btn" href="<?= e(APP_URL) ?>/admin/02-employees/<?= $isFormer ? '?status=former' : '' ?>">
         <i class="bi bi-arrow-left"></i> Back to <?= $isFormer ? 'Former Employees' : 'Employees' ?>
       </a>
+      <?php
+        // "Live Track" - opens a Mapbox modal following this worker's bike in
+        // near-real-time. Only when: live tracking is on (Settings), the
+        // worker has a bound phone (i.e. uses the app, not the web), and they
+        // are a current employee. Hidden otherwise - the modal has nothing to
+        // show for a web/iOS worker (a browser cannot background-track).
+        // live_tracking_enabled() comes from includes/settings.php, already
+        // loaded by bootstrap.php at the top of this page.
+        $canLiveTrack = !$isFormer && !empty($employee['device_id']) && live_tracking_enabled();
+      ?>
+      <?php if ($canLiveTrack): ?>
+        <button type="button" class="btn" id="emp-live-track"
+                data-live-track-id="<?= (int) $id ?>"
+                data-live-track-name="<?= e($employee['name']) ?>">
+          <i class="bi bi-broadcast"></i> Live Track
+        </button>
+      <?php endif; ?>
       <?php if (!empty($me['is_super_admin']) && $isFormer): ?>
         <?php /* Former employee: the only action is Rejoin. Everything else
                  (edit, PIN, device, lock, delete) is hidden - the record is
@@ -417,5 +435,14 @@ require dirname(__DIR__) . '/components/mapbox/mapbox.php';
     })();
   </script>
   <script src="<?= e(APP_URL) ?>/admin/02-employees/js/employee.js"></script>
+  <?php if (!empty($canLiveTrack)): ?>
+    <script>
+      window.TRACK_LIVE = {
+        endpoint: <?= json_encode(APP_URL . '/admin/02-employees/api/live-track.php') ?>,
+        token: <?= json_encode(defined('MAPBOX_ACCESS_TOKEN') ? MAPBOX_ACCESS_TOKEN : '') ?>
+      };
+    </script>
+    <script src="<?= e(APP_URL) ?>/admin/02-employees/js/live-track.js"></script>
+  <?php endif; ?>
 <?php
 require dirname(__DIR__) . '/components/footer/footer.php';

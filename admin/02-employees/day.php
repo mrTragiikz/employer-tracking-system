@@ -186,6 +186,7 @@ require dirname(__DIR__) . '/components/mapbox/mapbox.php';
       $mapPersistKey = 'trk.daymap.' . (int) $employeeId . '.' . $date;
       $mapFoot       = count($mapPoints) . ' points · ' . count($visits) . ' shop' . (count($visits) === 1 ? '' : 's')
                      . ($co ? ' · ' . number_format((float) $day['road_km'], 1) . ' km by road (estimate)' : '');
+      $mapTrailUrl   = APP_URL . '/admin/components/mapbox/api/pings.php?employee=' . (int) $employeeId . '&date=' . rawurlencode($date);
       require __DIR__ . '/_route_map.php';
     endif; ?>
 

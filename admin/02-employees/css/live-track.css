@@ -1,0 +1,150 @@
+/* admin/02-employees/css/live-track.css - the "Live Track" modal. */
+
+.lt-modal {
+  position: fixed;
+  inset: 0;
+  z-index: 1200;
+  background: rgba(20, 18, 15, 0.6);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+}
+
+.lt-modal__dialog {
+  width: min(920px, 100%);
+  height: min(680px, 92vh);
+  background: #fff;
+  border-radius: 14px;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+}
+
+.lt-modal__head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 12px 16px;
+  border-bottom: 1px solid #ece7df;
+}
+
+.lt-modal__title {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 14px;
+  color: #2a2420;
+  min-width: 0;
+}
+.lt-modal__title strong { font-weight: 700; }
+
+.lt-modal__state {
+  font-size: 12px;
+  color: #6b6156;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.lt-dot {
+  width: 9px;
+  height: 9px;
+  border-radius: 50%;
+  background: #948a7d;
+  flex: none;
+}
+.lt-dot--live {
+  background: #1f7a43;
+  box-shadow: 0 0 0 0 rgba(31, 122, 67, 0.5);
+  animation: lt-pulse 1.8s infinite;
+}
+.lt-dot--checked_out { background: #6b6156; }
+.lt-dot--not_started,
+.lt-dot--web_user,
+.lt-dot--tracking_off { background: #c1362e; }
+
+@keyframes lt-pulse {
+  0%   { box-shadow: 0 0 0 0 rgba(31, 122, 67, 0.5); }
+  70%  { box-shadow: 0 0 0 8px rgba(31, 122, 67, 0); }
+  100% { box-shadow: 0 0 0 0 rgba(31, 122, 67, 0); }
+}
+
+.lt-modal__close {
+  border: 0;
+  background: transparent;
+  font-size: 24px;
+  line-height: 1;
+  color: #6b6156;
+  cursor: pointer;
+  padding: 0 4px;
+}
+.lt-modal__close:hover { color: #2a2420; }
+
+.lt-modal__map {
+  flex: 1;
+  position: relative;
+  background: #eef1ec;
+}
+.lt-modal__map .mapboxgl-map { position: absolute; inset: 0; }
+
+.lt-modal__msg {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  padding: 32px;
+  color: #6b6156;
+  font-size: 13px;
+  line-height: 1.6;
+}
+
+.lt-modal__foot {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 10px 16px;
+  border-top: 1px solid #ece7df;
+  font-size: 11.5px;
+  color: #6b6156;
+}
+
+/* the moving bike marker */
+.lt-bike {
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  background: #6b4423;
+  color: #fff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 15px;
+  border: 2px solid #fff;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.35);
+}
+
+/* checkpoint pins (A / 1 / 2 / Z) */
+.lt-cp {
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  color: #fff;
+  font-size: 11px;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 2px solid #fff;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.3);
+}
+
+@media (max-width: 560px) {
+  .lt-modal { padding: 0; }
+  .lt-modal__dialog { width: 100%; height: 100%; border-radius: 0; }
+}

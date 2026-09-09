@@ -226,6 +226,7 @@ require dirname(__DIR__) . '/components/mapbox/mapbox.php';
                        . $dot . number_format($roadKm, 1) . ' km by road'
                        . ($dayClosed ? ' (estimate)' : ' so far')
                        . ($hasOut ? '' : $dot . 'not checked out yet');
+        $mapTrailUrl   = APP_URL . '/admin/components/mapbox/api/pings.php?employee=' . (int) $employeeId . '&date=' . rawurlencode($date);
         require dirname(__DIR__) . '/02-employees/_route_map.php';
       ?>
 

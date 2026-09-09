@@ -17,11 +17,16 @@
  *   $mapFoot      string   caption under the map (already escaped/plain text)
  * Optional:
  *   $mapOpen      bool     start expanded (default false)
+ *   $mapTrailUrl  string   URL returning a tracked worker's real GPS trail
+ *                          ({ok, points:[{lat,lng}]}); when it has points the
+ *                          map draws THAT instead of the checkpoint line.
+ *                          Empty / omitted -> current behaviour unchanged.
  */
 
 declare(strict_types=1);
 
 /** @var array $mapPoints */
+$mapTrailUrl = $mapTrailUrl ?? '';   // optional; unset -> no GPS-trail overlay
 $rm_hasOut = (bool) array_filter($mapPoints, static fn($p) => $p['kind'] === 'checkout');
 $rm_shops  = count(array_filter($mapPoints, static fn($p) => $p['kind'] === 'visit'));
 
@@ -119,7 +124,8 @@ $rm_subtitle = $rm_hasOut ? 'Check-in to check-out, in visit order' : 'Route so 
         ?>
         <div class="day-map__real mb-route-map" id="mb-<?= e($mapPanelId) ?>"
              data-map-token="<?= e(defined('MAPBOX_ACCESS_TOKEN') ? MAPBOX_ACCESS_TOKEN : '') ?>"
-             data-map-points='<?= e($rm_pointsJson) ?>'>
+             data-map-points='<?= e($rm_pointsJson) ?>'
+             <?php if (!empty($mapTrailUrl)): ?>data-ping-trail-url="<?= e($mapTrailUrl) ?>"<?php endif; ?>>
         <span class="day-map__badge"><i class="bi bi-info-circle"></i> Sketch from GPS points - live map is integrated later</span>
         <svg class="day-map__svg" viewBox="0 0 <?= $rm_W ?> <?= $rm_H ?>" preserveAspectRatio="xMidYMid slice" role="img"
              aria-label="Route through <?= $rm_shops ?> shop<?= $rm_shops === 1 ? '' : 's' ?>">
