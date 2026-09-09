@@ -1,16 +1,20 @@
-import 'package:flutter_secure_storage/flutter_secure_storage.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:uuid/uuid.dart';
 
-/// Small wrapper over flutter_secure_storage for the few things we persist:
-/// the bearer token (the "forever logged in" story), the per-install
-/// device_id (the one-device rule 10), and the cached employee display bits.
+/// Small wrapper over SharedPreferences for the few things we persist: the
+/// bearer token (the "forever logged in" story), the per-install device_id
+/// (the one-device rule 10), and the cached employee display bits.
+///
+/// On Android, SharedPreferences lives in the app's private data directory -
+/// no other app can read it, and on a lost/wiped phone the admin's
+/// Reset Device kills the token server-side anyway. Good enough for a
+/// 4-digit-PIN field app; keeps the dependency tree light.
 class Storage {
   Storage._();
   static final Storage instance = Storage._();
 
-  static const _s = FlutterSecureStorage(
-    aOptions: AndroidOptions(),
-  );
+  SharedPreferences? _p;
+  Future<SharedPreferences> get _prefs async => _p ??= await SharedPreferences.getInstance();
 
   static const _kToken = 'auth_token';
   static const _kDeviceId = 'device_id';
@@ -19,17 +23,18 @@ class Storage {
   static const _kCode = 'emp_code';
   static const _kPhoto = 'emp_photo';
 
-  Future<String?> get token => _s.read(key: _kToken);
-  Future<void> setToken(String t) => _s.write(key: _kToken, value: t);
-  Future<void> clearToken() => _s.delete(key: _kToken);
+  Future<String?> get token async => (await _prefs).getString(_kToken);
+  Future<void> setToken(String t) async => (await _prefs).setString(_kToken, t);
+  Future<void> clearToken() async => (await _prefs).remove(_kToken);
 
   /// A stable id for this install. Created once, kept forever - it is what
   /// binds the employee's account to this phone (server-side rule 10).
   Future<String> deviceId() async {
-    final existing = await _s.read(key: _kDeviceId);
+    final p = await _prefs;
+    final existing = p.getString(_kDeviceId);
     if (existing != null && existing.isNotEmpty) return existing;
     final fresh = const Uuid().v4();
-    await _s.write(key: _kDeviceId, value: fresh);
+    await p.setString(_kDeviceId, fresh);
     return fresh;
   }
 
@@ -39,26 +44,31 @@ class Storage {
     String? code,
     String? photoUrl,
   }) async {
-    await _s.write(key: _kName, value: name);
-    await _s.write(key: _kPhone, value: phone);
-    await _s.write(key: _kCode, value: code ?? '');
-    await _s.write(key: _kPhoto, value: photoUrl ?? '');
+    final p = await _prefs;
+    await p.setString(_kName, name);
+    await p.setString(_kPhone, phone);
+    await p.setString(_kCode, code ?? '');
+    await p.setString(_kPhoto, photoUrl ?? '');
   }
 
-  Future<Map<String, String?>> readEmployee() async => {
-        'name': await _s.read(key: _kName),
-        'phone': await _s.read(key: _kPhone),
-        'code': await _s.read(key: _kCode),
-        'photo_url': await _s.read(key: _kPhoto),
-      };
+  Future<Map<String, String?>> readEmployee() async {
+    final p = await _prefs;
+    return {
+      'name': p.getString(_kName),
+      'phone': p.getString(_kPhone),
+      'code': p.getString(_kCode),
+      'photo_url': p.getString(_kPhoto),
+    };
+  }
 
   /// Full wipe - called on an explicit Logout or a 401 from the server.
+  /// The device_id is deliberately kept for the life of the install.
   Future<void> clearAll() async {
-    await _s.delete(key: _kToken);
-    await _s.delete(key: _kName);
-    await _s.delete(key: _kPhone);
-    await _s.delete(key: _kCode);
-    await _s.delete(key: _kPhoto);
-    // NOT the device_id - that stays for the life of the install.
+    final p = await _prefs;
+    await p.remove(_kToken);
+    await p.remove(_kName);
+    await p.remove(_kPhone);
+    await p.remove(_kCode);
+    await p.remove(_kPhoto);
   }
 }

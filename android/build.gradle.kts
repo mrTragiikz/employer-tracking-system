@@ -5,16 +5,9 @@ allprojects {
     }
 }
 
-val newBuildDir: Directory =
-    rootProject.layout.buildDirectory
-        .dir("../../build")
-        .get()
-rootProject.layout.buildDirectory.value(newBuildDir)
-
-subprojects {
-    val newSubprojectBuildDir: Directory = newBuildDir.dir(project.name)
-    project.layout.buildDirectory.value(newSubprojectBuildDir)
-}
+// Use Gradle's default build directories (the flutter tool expects the .apk
+// under <project>/build/...). The template's "../../build" redirect resolved
+// to D:\build on this machine and made the tool unable to find the output.
 subprojects {
     project.evaluationDependsOn(":app")
 }
