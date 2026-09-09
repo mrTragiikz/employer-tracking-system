@@ -26,6 +26,13 @@ declare(strict_types=1);
 require dirname(__DIR__, 2) . '/includes/bootstrap.php';
 $me = require_employee();
 
+// This endpoint only READS the session (require_employee), never writes it.
+// Every field page hits it every ~8s, so release the session lock right away
+// - otherwise two requests from the same employee (e.g. the poll and a page
+// load) would serialise on PHP's per-session file lock. Nothing below needs
+// $_SESSION.
+session_write_close();
+
 header('Content-Type: application/json; charset=utf-8');
 header('X-Content-Type-Options: nosniff');
 header('Cache-Control: no-store');
